@@ -65,7 +65,6 @@ const translations = {
     copied: "Скопировано",
     copyFailed: "Не удалось",
     openSource: "Открыть источник",
-    offset: "offset",
     linuxX86Platform: "Linux x86 · linux",
     linuxX64Platform: "Linux x64 · linux64",
     foundShown: "Найдено {found} · показано {shown}",
@@ -135,7 +134,6 @@ const translations = {
     copied: "Copied",
     copyFailed: "Failed",
     openSource: "Open source",
-    offset: "offset",
     linuxX86Platform: "Linux x86 · linux",
     linuxX64Platform: "Linux x64 · linux64",
     foundShown: "Found {found} · showing {shown}",
@@ -301,6 +299,16 @@ function signatureLabel(kind) {
   return kind === "byte-pattern" ? translate("bytePattern") : translate("elfSymbol");
 }
 
+export function formatModuleOffset(offsets, locale = currentLocale) {
+  const russian = locale === "ru";
+  return {
+    text: `${russian ? "Смещение в модуле" : "Module offset"}: ${offsets.join(", ")}`,
+    title: russian
+      ? "Адрес сигнатуры относительно начала ELF-модуля."
+      : "Signature address relative to the beginning of the ELF module.",
+  };
+}
+
 function sourceHref(entry) {
   return `${SOURCE_URL}${encodeURIComponent(entry.sourceFile)}#L${entry.sourceLine}`;
 }
@@ -354,7 +362,10 @@ function makePlatformBlock(label, signature) {
   block.append(codeRow);
 
   if (signature.offsets.length) {
-    block.append(element("div", "offsets", `${translate("offset")}: ${signature.offsets.join(", ")}`));
+    const details = formatModuleOffset(signature.offsets);
+    const offset = element("div", "offsets", details.text);
+    offset.title = details.title;
+    block.append(offset);
   }
   return block;
 }

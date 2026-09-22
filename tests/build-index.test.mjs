@@ -9,6 +9,7 @@ import {
 } from "../tools/build-index.mjs";
 import {
   filterEntries,
+  formatModuleOffset,
   normalizeLanguagePreference,
   normalizeThemePreference,
   resolveLocale,
@@ -127,6 +128,17 @@ test("filters entries by partial name, library, architecture, and kind", () => {
   assert.equal(filterEntries(entries, { query: "cbase", source: "all", arch: "all", kind: "all" }).length, 1);
   assert.equal(filterEntries(entries, { query: "", source: "server", arch: "linux64", kind: "all" }).length, 0);
   assert.equal(filterEntries(entries, { query: "", source: "all", arch: "linux", kind: "byte-pattern" }).length, 1);
+});
+
+test("formats module offsets with a localized tooltip instead of the raw technical label", () => {
+  assert.deepEqual(formatModuleOffset(["0x1230"], "ru"), {
+    text: "Смещение в модуле: 0x1230",
+    title: "Адрес сигнатуры относительно начала ELF-модуля.",
+  });
+  assert.deepEqual(formatModuleOffset(["0x1230"], "en"), {
+    text: "Module offset: 0x1230",
+    title: "Signature address relative to the beginning of the ELF module.",
+  });
 });
 
 test("normalizes and resolves the saved theme preference", () => {
