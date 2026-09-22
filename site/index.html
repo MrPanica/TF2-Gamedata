@@ -1,0 +1,188 @@
+<!doctype html>
+<html lang="ru">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="description" content="Каталог Linux-сигнатур Team Fortress 2 и связанных SourceMod GameData" />
+    <meta name="theme-color" content="#f7f7f5" />
+    <title>GameData Catalog — Team Fortress 2</title>
+    <link rel="icon" href="./favicon.svg" type="image/svg+xml" />
+    <link rel="stylesheet" href="./styles.css" />
+    <script>
+      (() => {
+        try {
+          const stored = localStorage.getItem("tf2-gamedata-theme");
+          document.documentElement.dataset.theme = ["system", "light", "dark"].includes(stored) ? stored : "system";
+        } catch {
+          document.documentElement.dataset.theme = "system";
+        }
+      })();
+    </script>
+  </head>
+  <body>
+    <header class="topbar">
+      <div class="topbar-inner">
+        <a class="brand" href="./" aria-label="GameData Catalog — на главную">
+          <span>GameData</span><small>CATALOG</small>
+        </a>
+        <div class="topbar-actions">
+          <a class="topbar-link" href="https://github.com/MrPanica/TF2-Gamedata" target="_blank" rel="noreferrer">GitHub ↗</a>
+          <label class="theme-control" for="language-select">
+            <span data-i18n="languageLabel">Язык</span>
+            <select id="language-select">
+              <option value="auto" data-i18n="languageAuto">Авто</option>
+              <option value="ru" data-i18n="languageRussian">Русский</option>
+              <option value="en" data-i18n="languageEnglish">English</option>
+            </select>
+          </label>
+          <label class="theme-control" for="theme-select">
+            <span data-i18n="themeLabel">Тема</span>
+            <select id="theme-select">
+              <option value="system" data-i18n="themeSystem">Системная</option>
+              <option value="light" data-i18n="themeLight">Светлая</option>
+              <option value="dark" data-i18n="themeDark">Тёмная</option>
+            </select>
+          </label>
+        </div>
+      </div>
+    </header>
+
+    <main class="shell">
+      <section class="hero" aria-labelledby="page-title">
+        <p class="eyebrow" data-i18n="eyebrow">SourceMod · Linux GameData</p>
+        <h1 id="page-title" data-i18n="pageTitle">Выберите игру</h1>
+        <p class="intro" data-i18n="intro">Сигнатуры движка и сервера собраны в одном каталоге. Выберите игру или сразу просматривайте список ниже.</p>
+      </section>
+
+      <section class="game-grid" aria-label="Игры" data-i18n-aria="gamesAria">
+        <article class="game-card game-card-tf2">
+          <div class="game-art">
+            <span class="art-mark">TF2</span>
+            <span class="art-stamp" data-i18n="tf2Stamp">SourceMod · Linux x86 / x64</span>
+          </div>
+          <div class="game-card-body">
+            <div class="game-card-heading">
+              <div>
+                <h2>Team Fortress 2</h2>
+                <p data-i18n="tf2Description">Актуальный локальный каталог символов Linux.</p>
+              </div>
+              <a class="repo-link" href="https://github.com/MrPanica/TF2-Gamedata" target="_blank" rel="noreferrer">GitHub ↗</a>
+            </div>
+            <div class="game-card-meta" aria-label="Статистика TF2" data-i18n-aria="tf2StatsAria">
+              <span><strong id="tf2-total">—</strong> <span data-i18n="entriesLabel">записей</span></span>
+              <span><strong id="tf2-engine">—</strong> engine</span>
+              <span><strong id="tf2-server">—</strong> server</span>
+            </div>
+            <div class="game-actions" aria-label="Открыть раздел TF2" data-i18n-aria="tf2ActionsAria">
+              <button class="game-action" type="button" data-source-choice="engine"><span class="action-icon">◉</span>Engine</button>
+              <button class="game-action" type="button" data-source-choice="server"><span class="action-icon">▤</span>Server</button>
+              <button class="game-action game-action-wide" type="button" data-source-choice="all" data-i18n="allSignatures">Все сигнатуры</button>
+            </div>
+          </div>
+        </article>
+
+        <article class="game-card game-card-classified">
+          <div class="game-art">
+            <span class="art-mark">TF2C</span>
+            <span class="art-stamp" data-i18n="classifiedStamp">Community game · Linux x64</span>
+          </div>
+          <div class="game-card-body">
+            <div class="game-card-heading">
+              <div>
+                <h2>Team Fortress 2 Classified</h2>
+                <p data-i18n="classifiedDescription">Отдельные сигнатуры и gamedata для Classified.</p>
+              </div>
+              <span class="status-pill">GitHub</span>
+            </div>
+            <div class="classified-note" data-i18n="classifiedNote">Источник хранится отдельно от основного TF2 каталога, чтобы версии игр не смешивались.</div>
+            <a class="classified-link" href="https://github.com/Deenyoro/TF2Classified-DockerServer/tree/main/addons-bundled/gamedata-tf2c" target="_blank" rel="noreferrer">
+              <span data-i18n="openClassified">Открыть репозиторий сигнатур</span> <span aria-hidden="true">↗</span>
+            </a>
+          </div>
+        </article>
+      </section>
+
+      <section id="catalog" class="catalog-section" aria-labelledby="catalog-title" data-i18n-aria="catalogAria">
+        <div class="catalog-heading">
+          <div>
+            <p class="section-kicker" data-i18n="catalogKicker">Team Fortress 2 / GameData</p>
+            <h2 id="catalog-title" data-i18n="catalogTitle">Список сигнатур</h2>
+            <p class="catalog-intro" data-i18n="catalogIntro">Список открыт сразу. Поиск и фильтры сужают уже загруженный каталог, а карточки добавляются по мере прокрутки.</p>
+          </div>
+          <div id="data-version" class="muted"></div>
+        </div>
+
+        <section class="panel search-panel" aria-labelledby="search-title">
+          <div class="section-heading">
+            <div>
+              <h3 id="search-title" data-i18n="searchTitle">Поиск и фильтры</h3>
+              <p data-i18n="searchHint">Ищет по имени, библиотеке и значению символа.</p>
+            </div>
+          </div>
+
+          <label class="field search-field" for="query">
+            <span data-i18n="queryLabel">Название или часть названия</span>
+            <input id="query" type="search" autocomplete="off" placeholder="Например: AddEmptyMesh" data-i18n-placeholder="queryPlaceholder" />
+          </label>
+
+          <div class="filters" aria-label="Фильтры">
+            <label class="field" for="source">
+              <span data-i18n="libraryLabel">Библиотека</span>
+              <select id="source">
+                <option value="all" data-i18n="all">Все</option>
+                <option value="engine">engine</option>
+                <option value="server">server</option>
+              </select>
+            </label>
+            <label class="field" for="arch">
+              <span data-i18n="architectureLabel">Архитектура</span>
+              <select id="arch">
+                <option value="all" data-i18n="allEntries">Все записи</option>
+                <option value="linux" data-i18n="linuxX86">Linux x86</option>
+                <option value="linux64" data-i18n="linuxX64">Linux x64</option>
+                <option value="both" data-i18n="bothArchitectures">Обе архитектуры</option>
+                <option value="missing" data-i18n="missingArchitecture">Только с пропуском</option>
+              </select>
+            </label>
+            <label class="field" for="kind">
+              <span data-i18n="kindLabel">Тип</span>
+              <select id="kind">
+                <option value="all" data-i18n="all">Все</option>
+                <option value="symbol" data-i18n="elfSymbol">ELF symbol</option>
+                <option value="byte-pattern" data-i18n="bytePattern">Byte-pattern</option>
+              </select>
+            </label>
+          </div>
+        </section>
+
+        <section id="summary" class="stats" aria-label="Статистика" data-i18n-aria="summaryAria" hidden></section>
+
+        <div class="results-heading">
+          <div>
+            <h2 data-i18n="resultsTitle">Результаты</h2>
+            <p id="status" class="muted" role="status" aria-live="polite">Загрузка индекса…</p>
+          </div>
+          <button id="reset" class="button button-ghost" type="button" data-i18n="reset">Сбросить</button>
+        </div>
+        <div id="error" class="state state-error" role="alert" hidden></div>
+        <div id="results" class="results" aria-live="polite"></div>
+        <div id="empty" class="state" hidden>
+          <strong data-i18n="noResults">Ничего не найдено</strong>
+          <span data-i18n="noResultsHint">Попробуйте сократить запрос или изменить фильтры.</span>
+        </div>
+        <div id="loading" class="state" aria-busy="true">
+          <span class="skeleton skeleton-wide"></span>
+          <span class="skeleton skeleton-medium"></span>
+          <span class="skeleton skeleton-wide"></span>
+        </div>
+        <div id="sentinel" class="sentinel" aria-hidden="true"></div>
+      </section>
+    </main>
+
+    <footer class="footer">
+      <span data-i18n="footer">GameData Catalog · локальный индекс SourceMod</span>
+      <a href="https://github.com/MrPanica/TF2-Gamedata" target="_blank" rel="noreferrer" data-i18n="sourceRepository">Исходный репозиторий ↗</a>
+    </footer>
+    <script type="module" src="./app.js"></script>
+  </body>
+</html>

@@ -1,0 +1,13 @@
+{
+  "name": "tf2-gamedata-catalog",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "test": "node --test",
+    "audit": "node tools/build-index.mjs --audit",
+    "audit:linux": "node tools/audit-linux-signatures.mjs",
+    "review:linux": "node tools/review-linux-byte-patterns.mjs",
+    "build": "node tools/build-index.mjs --build"
+  }
+}
