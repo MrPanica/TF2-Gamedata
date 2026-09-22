@@ -7,7 +7,7 @@
     <meta name="theme-color" content="#f7f7f5" />
     <title>GameData Catalog — Team Fortress 2</title>
     <link rel="icon" href="./favicon.svg" type="image/svg+xml" />
-    <link rel="stylesheet" href="./styles.css" />
+    <link rel="stylesheet" href="./styles.css?v=2" />
     <script>
       (() => {
         try {
@@ -48,66 +48,47 @@
     </header>
 
     <main class="shell">
-      <section class="hero" aria-labelledby="page-title" hidden>
-        <p class="eyebrow" data-i18n="eyebrow">SourceMod · Linux GameData</p>
-        <h1 id="page-title" data-i18n="pageTitle">Выберите игру</h1>
-        <p class="intro" data-i18n="intro">Сигнатуры движка и сервера собраны в одном каталоге. Выберите игру или сразу просматривайте список ниже.</p>
-      </section>
-
       <section class="game-grid" aria-label="Игры" data-i18n-aria="gamesAria">
-        <article class="game-card game-card-tf2">
+        <a class="game-card" href="./?game=tf2#catalog" data-game-card="tf2" data-i18n-aria="openTf2">
           <div class="game-art">
+            <img src="./assets/team-fortress-2.png" alt="" width="460" height="215" />
             <span class="art-mark">TF2</span>
-            <span class="art-stamp" data-i18n="tf2Stamp">SourceMod · Linux x86 / x64</span>
+            <span class="art-stamp" data-i18n="tf2Stamp">Linux x86 / x64</span>
           </div>
           <div class="game-card-body">
-            <div class="game-card-heading">
-              <div>
-                <h2>Team Fortress 2</h2>
-                <p data-i18n="tf2Description">Актуальный локальный каталог символов Linux.</p>
-              </div>
-              <a class="repo-link" href="https://github.com/MrPanica/TF2-Gamedata" target="_blank" rel="noreferrer">GitHub ↗</a>
-            </div>
-            <div class="game-card-meta" aria-label="Статистика TF2" data-i18n-aria="tf2StatsAria">
+            <h2>Team Fortress 2</h2>
+            <p data-i18n="tf2Description">Сигнатуры движка и сервера.</p>
+            <div class="game-card-meta">
               <span><strong id="tf2-total">—</strong> <span data-i18n="entriesLabel">записей</span></span>
               <span><strong id="tf2-engine">—</strong> engine</span>
               <span><strong id="tf2-server">—</strong> server</span>
             </div>
-            <div class="game-actions" aria-label="Открыть раздел TF2" data-i18n-aria="tf2ActionsAria">
-              <button class="game-action" type="button" data-source-choice="engine"><span class="action-icon">◉</span>Engine</button>
-              <button class="game-action" type="button" data-source-choice="server"><span class="action-icon">▤</span>Server</button>
-              <button class="game-action game-action-wide" type="button" data-source-choice="all" data-i18n="allSignatures">Все сигнатуры</button>
-            </div>
           </div>
-        </article>
+        </a>
 
-        <article class="game-card game-card-classified">
+        <a class="game-card" href="./?game=tf2c#catalog" data-game-card="tf2c" data-i18n-aria="openTf2c">
           <div class="game-art">
+            <img src="./assets/team-fortress-2-classified.png" alt="" width="460" height="215" />
             <span class="art-mark">TF2C</span>
-            <span class="art-stamp" data-i18n="classifiedStamp">Community game · Linux x64</span>
+            <span class="art-stamp" data-i18n="classifiedStamp">Только Linux x64</span>
           </div>
           <div class="game-card-body">
-            <div class="game-card-heading">
-              <div>
-                <h2>Team Fortress 2 Classified</h2>
-                <p data-i18n="classifiedDescription">Отдельные сигнатуры и gamedata для Classified.</p>
-              </div>
-              <span class="status-pill">GitHub</span>
+            <h2>Team Fortress 2 Classified</h2>
+            <p data-i18n="classifiedDescription">Сигнатуры Team Fortress 2 Classified.</p>
+            <div class="game-card-meta">
+              <span><strong id="tf2c-total">—</strong> <span data-i18n="entriesLabel">записей</span></span>
+              <span><strong id="tf2c-symbols">—</strong> <span data-i18n="symbolCount">ELF symbols</span></span>
+              <span><strong id="tf2c-patterns">—</strong> <span data-i18n="bytePatternCount">byte-pattern</span></span>
             </div>
-            <div class="classified-note" data-i18n="classifiedNote">Источник хранится отдельно от основного TF2 каталога, чтобы версии игр не смешивались.</div>
-            <a class="classified-link" href="https://github.com/Deenyoro/TF2Classified-DockerServer/tree/main/addons-bundled/gamedata-tf2c" target="_blank" rel="noreferrer">
-              <span data-i18n="openClassified">Открыть репозиторий сигнатур</span> <span aria-hidden="true">↗</span>
-            </a>
           </div>
-        </article>
+        </a>
       </section>
 
       <section id="catalog" class="catalog-section" aria-labelledby="catalog-title" data-i18n-aria="catalogAria">
         <div class="catalog-heading">
           <div>
-            <p class="section-kicker" data-i18n="catalogKicker" hidden>Team Fortress 2 / GameData</p>
             <h2 id="catalog-title" data-i18n="catalogTitle">Список сигнатур</h2>
-            <p class="catalog-intro" data-i18n="catalogIntro" hidden>Список открыт сразу. Поиск и фильтры сужают уже загруженный каталог, а карточки добавляются по мере прокрутки.</p>
+            <p id="game-note" class="game-note" data-i18n="classifiedOnlyX64" hidden>Для Classified доступны только сигнатуры Linux x64.</p>
           </div>
           <div id="data-version" class="muted"></div>
         </div>
@@ -116,7 +97,6 @@
           <div class="section-heading">
             <div>
               <h3 id="search-title" data-i18n="searchTitle">Поиск и фильтры</h3>
-              <p data-i18n="searchHint" hidden>Ищет по имени, библиотеке и значению символа.</p>
             </div>
           </div>
 
@@ -138,10 +118,10 @@
               <span data-i18n="architectureLabel">Архитектура</span>
               <select id="arch">
                 <option value="all" data-i18n="allEntries">Все записи</option>
-                <option value="linux" data-i18n="linuxX86">Linux x86</option>
-                <option value="linux64" data-i18n="linuxX64">Linux x64</option>
-                <option value="both" data-i18n="bothArchitectures">Обе архитектуры</option>
-                <option value="missing" data-i18n="missingArchitecture">Только с пропуском</option>
+                <option value="linux" data-game-filter="tf2" data-i18n="linuxX86">x86</option>
+                <option value="linux64" data-i18n="linuxX64">x64</option>
+                <option value="both" data-game-filter="tf2" data-i18n="bothArchitectures">Обе архитектуры</option>
+                <option value="missing" data-game-filter="tf2" data-i18n="missingArchitecture">Только с пропуском</option>
               </select>
             </label>
             <label class="field" for="kind">
@@ -183,6 +163,6 @@
       <span data-i18n="footer">GameData Catalog · локальный индекс SourceMod</span>
       <a href="https://github.com/MrPanica/TF2-Gamedata" target="_blank" rel="noreferrer" data-i18n="sourceRepository">Исходный репозиторий ↗</a>
     </footer>
-    <script type="module" src="./app.js"></script>
+    <script type="module" src="./app.js?v=2"></script>
   </body>
 </html>

@@ -1,22 +1,14 @@
-# TF2 GameData — Linux signatures
+# TF2 GameData Catalog
 
-Статический каталог поиска по Linux-сигнатурам TF2. Данные собираются из:
+A static, searchable catalog of Team Fortress 2 and Team Fortress 2 Classified Linux GameData signatures. The site supports name and signature search, library and architecture filters, signature copying, and English/Russian language selection. It loads the selected game's catalog from a generated JSON file and publishes from this repository through GitHub Pages.
 
-- `tf2-function-signatures.game.engine.txt`
-- `tf2-function-signatures.game.server.txt`
-- `artifacts/reviewed-linux-byte-patterns.json` — проверенные byte-pattern для отсутствующих архитектурных вариантов.
+The TF2 catalog is built from the engine and server GameData files, plus reviewed Linux byte-pattern candidates. The Classified catalog currently contains 31 Linux x64 ELF symbol signatures and intentionally excludes table offsets. Its signature data is adapted from the [TF2 Classified server GameData](https://github.com/Deenyoro/TF2Classified-DockerServer/tree/81f0097ac7127a5ff742f90e7adcbbbe189c5fff/addons-bundled/gamedata-tf2c).
 
-Сайт не требует сервера или базы данных: браузер загружает статический JSON-индекс.
+Public site: <https://mrpanica.github.io/TF2-Gamedata/>
 
-## GitHub Pages
+## Development
 
-После включения Pages с источником **GitHub Actions** workflow публикует содержимое `dist/` при каждом push в `main`. Перед публикацией запускаются тесты и сборка. Результат будет доступен по адресу <https://mrpanica.github.io/TF2-Gamedata/>.
-
-Если Pages ещё не включён, откройте **Settings → Pages → Build and deployment → Source → GitHub Actions**. Запустить публикацию вручную можно из вкладки **Actions** через workflow `GitHub Pages`.
-
-## Локальная проверка
-
-```powershell
+```sh
 npm test
 npm run audit
 npm run audit:linux
@@ -24,18 +16,26 @@ npm run build
 python -m http.server 4173 --directory dist
 ```
 
-Открыть: <http://127.0.0.1:4173/>
+The build writes the static site and `dist/data/catalog.json`. Source GameData files remain the source of truth.
 
-Генератор создаёт `dist/data/index.json`, сохраняет Linux x86 (`linux`) и Linux x64 (`linux64`), offsets и ссылку на исходную строку. Reviewed byte-pattern добавляются только в отсутствующий архитектурный слот; исходные записи не перезаписываются.
+---
 
-## Проверка Linux byte-pattern
+# Каталог GameData для TF2
 
-`npm run audit:linux` проверяет сигнатуры индекса. Для повторной проверки паттернов на конкретном ELF можно передать файл:
+Статический каталог для поиска по Linux GameData-сигнатурам Team Fortress 2 и Team Fortress 2 Classified. На сайте доступны поиск по имени и сигнатуре, фильтры по библиотеке и архитектуре, копирование сигнатур и выбор русского или английского языка. Каталог выбранной игры загружается из JSON-файла; сайт публикуется из этого репозитория через GitHub Pages.
 
-```powershell
-node tools/audit-linux-signatures.mjs --binary "D:\path\to\server_srv.so"
+Каталог TF2 собирается из файлов GameData движка и сервера, а также проверенных кандидатов byte-pattern. В каталоге Classified сейчас 31 сигнатура Linux x64 в формате ELF symbol; table offsets намеренно не включены. Эти сигнатуры подготовлены на основе [GameData сервера TF2 Classified](https://github.com/Deenyoro/TF2Classified-DockerServer/tree/81f0097ac7127a5ff742f90e7adcbbbe189c5fff/addons-bundled/gamedata-tf2c).
+
+Публичный сайт: <https://mrpanica.github.io/TF2-Gamedata/>
+
+## Разработка
+
+```sh
+npm test
+npm run audit
+npm run audit:linux
+npm run build
+python -m http.server 4173 --directory dist
 ```
 
-Скрипт не создаёт неподтверждённые сигнатуры автоматически. Для поиска новых
-паттернов нужен конкретный ELF и известная функция/якорь, после чего результат
-нужно подтвердить повторным сканированием и тестом SourceMod.
+Сборка создаёт статический сайт и `dist/data/catalog.json`. Исходные файлы GameData остаются первоисточником данных.

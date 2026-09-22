@@ -7,6 +7,7 @@ const SOURCE_FILES = [
   "tf2-function-signatures.game.engine.txt",
   "tf2-function-signatures.game.server.txt",
 ];
+const TF2C_SOURCE_FILES = ["tf2c-function-signatures.game.server.txt"];
 
 const PLATFORM_KEYS = ["linux", "linux64"];
 
@@ -204,13 +205,36 @@ export function readSourceFiles(root = ROOT) {
   }));
 }
 
-export function buildIndexFromDisk(root = ROOT) {
+export function readClassifiedSourceFiles(root = ROOT) {
+  return TF2C_SOURCE_FILES.map((fileName) => ({
+    fileName,
+    text: readUtf8(path.join(root, fileName)),
+  }));
+}
+
+function readReviewedCandidates(root) {
   const reviewPath = path.join(root, "artifacts", "reviewed-linux-byte-patterns.json");
   const review = JSON.parse(readUtf8(reviewPath));
   if (!Array.isArray(review.promotable)) {
     throw new Error(`Missing reviewed byte-pattern list in ${reviewPath}`);
   }
-  return buildIndex(readSourceFiles(root), new Date().toISOString(), review.promotable);
+  return review.promotable;
+}
+
+export function buildIndexFromDisk(root = ROOT) {
+  return buildIndex(readSourceFiles(root), new Date().toISOString(), readReviewedCandidates(root));
+}
+
+export function buildCatalogFromDisk(root = ROOT) {
+  const generatedAt = new Date().toISOString();
+  return {
+    schemaVersion: 1,
+    generatedAt,
+    games: {
+      tf2: buildIndex(readSourceFiles(root), generatedAt, readReviewedCandidates(root)),
+      tf2c: buildIndex(readClassifiedSourceFiles(root), generatedAt),
+    },
+  };
 }
 
 function copySite(root, dist) {
@@ -220,32 +244,32 @@ function copySite(root, dist) {
 
 export function writeBuild(root = ROOT) {
   const dist = path.join(root, "dist");
-  const index = buildIndexFromDisk(root);
+  const catalog = buildCatalogFromDisk(root);
 
   fs.rmSync(dist, { recursive: true, force: true });
   copySite(root, dist);
   fs.mkdirSync(path.join(dist, "data"), { recursive: true });
   fs.writeFileSync(
-    path.join(dist, "data", "index.json"),
-    `${JSON.stringify(index)}\n`,
+    path.join(dist, "data", "catalog.json"),
+    `${JSON.stringify(catalog)}\n`,
     "utf8",
   );
 
-  return { index, dist };
+  return { catalog, dist };
 }
 
 function runCli() {
-  const index = buildIndexFromDisk();
   const mode = process.argv[2] ?? "--audit";
-
+  const result = mode === "--build"
+    ? writeBuild()
+    : { catalog: buildCatalogFromDisk() };
+  const catalogPath = path.join(result.dist ?? path.join(ROOT, "dist"), "data", "catalog.json");
   if (mode === "--build") {
-    const result = writeBuild();
-    const indexPath = path.join(result.dist, "data", "index.json");
-    const bytes = fs.statSync(indexPath).size;
-    console.log(`Built ${indexPath} (${bytes} bytes)`);
+    console.log(`Built ${catalogPath} (${fs.statSync(catalogPath).size} bytes)`);
   }
-
-  console.log(JSON.stringify(index.stats, null, 2));
+  console.log(JSON.stringify(Object.fromEntries(
+    Object.entries(result.catalog.games).map(([game, index]) => [game, index.stats]),
+  ), null, 2));
 }
 
 if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.meta.url)) {

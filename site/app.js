@@ -14,25 +14,22 @@ const translations = {
     themeLight: "Светлая",
     themeDark: "Тёмная",
     gamesAria: "Игры",
-    tf2StatsAria: "Статистика TF2",
-    tf2ActionsAria: "Открыть раздел TF2",
-    eyebrow: "SourceMod · Linux GameData",
-    pageTitle: "Выберите игру",
-    intro: "Сигнатуры движка и сервера собраны в одном каталоге. Выберите игру или сразу просматривайте список ниже.",
-    tf2Stamp: "SourceMod · Linux x86 / x64",
-    tf2Description: "Каталог Linux-сигнатур и проверенных byte-pattern.",
+    titleTf2: "Каталог GameData — Team Fortress 2",
+    titleTf2c: "Каталог GameData — Team Fortress 2 Classified",
+    openTf2: "Открыть каталог Team Fortress 2",
+    openTf2c: "Открыть каталог Team Fortress 2 Classified",
+    tf2Stamp: "Linux x86 / x64",
+    tf2Description: "Сигнатуры движка и сервера.",
     entriesLabel: "записей",
-    allSignatures: "Все сигнатуры",
-    classifiedStamp: "Community game · Linux x64",
-    classifiedDescription: "Отдельные сигнатуры и gamedata для Classified.",
-    classifiedNote: "Источник хранится отдельно от основного TF2 каталога, чтобы версии игр не смешивались.",
-    openClassified: "Открыть репозиторий сигнатур",
+    signatureCount: "сигнатур",
+    symbolCount: "ELF symbols",
+    bytePatternCount: "byte-pattern",
+    classifiedStamp: "Только Linux x64",
+    classifiedDescription: "Сигнатуры Team Fortress 2 Classified.",
+    classifiedOnlyX64: "Для Classified доступны только сигнатуры Linux x64.",
     catalogAria: "Список сигнатур",
-    catalogKicker: "Team Fortress 2 / GameData",
     catalogTitle: "Список сигнатур",
-    catalogIntro: "Список открыт сразу. Поиск и фильтры сужают уже загруженный каталог, а карточки добавляются по мере прокрутки.",
     searchTitle: "Поиск и фильтры",
-    searchHint: "Ищет по имени, библиотеке и значению символа.",
     queryLabel: "Название или часть названия",
     queryPlaceholder: "Например: AddEmptyMesh",
     libraryLabel: "Библиотека",
@@ -40,8 +37,8 @@ const translations = {
     kindLabel: "Тип",
     all: "Все",
     allEntries: "Все записи",
-    linuxX86: "Linux x86",
-    linuxX64: "Linux x64",
+    linuxX86: "x86",
+    linuxX64: "x64",
     bothArchitectures: "Обе архитектуры",
     missingArchitecture: "Только с пропуском",
     elfSymbol: "ELF symbol",
@@ -65,8 +62,8 @@ const translations = {
     copied: "Скопировано",
     copyFailed: "Не удалось",
     openSource: "Открыть источник",
-    linuxX86Platform: "Linux x86 · linux",
-    linuxX64Platform: "Linux x64 · linux64",
+    linuxX86Platform: "x86",
+    linuxX64Platform: "x64",
     foundShown: "Найдено {found} · показано {shown}",
     loadingIndex: "Загрузка индекса…",
     noResultsStatus: "Ничего не найдено",
@@ -83,25 +80,22 @@ const translations = {
     themeLight: "Light",
     themeDark: "Dark",
     gamesAria: "Games",
-    tf2StatsAria: "TF2 statistics",
-    tf2ActionsAria: "Open TF2 section",
-    eyebrow: "SourceMod · Linux GameData",
-    pageTitle: "Pick a game",
-    intro: "Engine and server signatures in one catalog. Pick a game or browse the list below right away.",
-    tf2Stamp: "SourceMod · Linux x86 / x64",
+    titleTf2: "GameData Catalog — Team Fortress 2",
+    titleTf2c: "GameData Catalog — Team Fortress 2 Classified",
+    openTf2: "Open the Team Fortress 2 catalog",
+    openTf2c: "Open the Team Fortress 2 Classified catalog",
+    tf2Stamp: "Linux x86 / x64",
     tf2Description: "Linux symbols and reviewed byte-patterns in one catalog.",
     entriesLabel: "entries",
-    allSignatures: "All signatures",
-    classifiedStamp: "Community game · Linux x64",
-    classifiedDescription: "Separate signatures and gamedata for Classified.",
-    classifiedNote: "This source stays separate from the main TF2 catalog so game versions do not get mixed.",
-    openClassified: "Open signature repository",
+    signatureCount: "signatures",
+    symbolCount: "ELF symbols",
+    bytePatternCount: "byte-patterns",
+    classifiedStamp: "Linux x64 only",
+    classifiedDescription: "Team Fortress 2 Classified signatures.",
+    classifiedOnlyX64: "Classified signatures are available for Linux x64 only.",
     catalogAria: "Signature list",
-    catalogKicker: "Team Fortress 2 / GameData",
     catalogTitle: "Signature list",
-    catalogIntro: "The list is open immediately. Search and filters narrow the loaded catalog, while cards are added as you scroll.",
     searchTitle: "Search and filters",
-    searchHint: "Search by name, library, or symbol value.",
     queryLabel: "Name or part of a name",
     queryPlaceholder: "For example: AddEmptyMesh",
     libraryLabel: "Library",
@@ -109,8 +103,8 @@ const translations = {
     kindLabel: "Type",
     all: "All",
     allEntries: "All entries",
-    linuxX86: "Linux x86",
-    linuxX64: "Linux x64",
+    linuxX86: "x86",
+    linuxX64: "x64",
     bothArchitectures: "Both architectures",
     missingArchitecture: "Missing one architecture",
     elfSymbol: "ELF symbol",
@@ -134,8 +128,8 @@ const translations = {
     copied: "Copied",
     copyFailed: "Failed",
     openSource: "Open source",
-    linuxX86Platform: "Linux x86 · linux",
-    linuxX64Platform: "Linux x64 · linux64",
+    linuxX86Platform: "x86",
+    linuxX64Platform: "x64",
     foundShown: "Found {found} · showing {shown}",
     loadingIndex: "Loading index…",
     noResultsStatus: "No results",
@@ -163,6 +157,10 @@ export function resolveLocale(preference, browserLanguage = "en") {
   const normalizedPreference = normalizeLanguagePreference(preference);
   if (normalizedPreference !== "auto") return normalizedPreference;
   return String(browserLanguage).toLocaleLowerCase().startsWith("ru") ? "ru" : "en";
+}
+
+export function normalizeGame(value) {
+  return value === "tf2c" ? "tf2c" : "tf2";
 }
 
 function translate(key, values = {}) {
@@ -321,22 +319,51 @@ function makeStat(label, value, hint) {
   return card;
 }
 
-function renderSummary(index) {
+function renderGameCards(games, selectedGame) {
+  document.querySelectorAll("[data-game-card]").forEach((card) => {
+    const game = card.dataset.gameCard;
+    const selected = game === selectedGame;
+    if (selected) card.setAttribute("aria-current", "page");
+    else card.removeAttribute("aria-current");
+  });
+
+  const tf2 = games.tf2;
+  const tf2c = games.tf2c;
+  const tf2Libraries = tf2.stats.byLibrary ?? {};
+  const tf2cSymbols = tf2c.stats.platforms.linux64.symbol;
+  const tf2cPatterns = tf2c.stats.platforms.linux64["byte-pattern"];
+  document.querySelector("#tf2-total").textContent = formatNumber(tf2.stats.entries);
+  document.querySelector("#tf2-engine").textContent = formatNumber(tf2Libraries.engine ?? 0);
+  document.querySelector("#tf2-server").textContent = formatNumber(tf2Libraries.server ?? 0);
+  document.querySelector("#tf2c-total").textContent = formatNumber(tf2c.stats.entries);
+  document.querySelector("#tf2c-symbols").textContent = formatNumber(tf2cSymbols);
+  document.querySelector("#tf2c-patterns").textContent = formatNumber(tf2cPatterns);
+}
+
+function renderSummary(index, selectedGame) {
   const summary = document.querySelector("#summary");
   const linux = index.stats.platforms.linux;
   const linux64 = index.stats.platforms.linux64;
-  summary.replaceChildren(
+  const stats = [
     makeStat(translate("totalEntries"), index.stats.entries, translate("duplicateNames", { count: formatNumber(index.stats.duplicates.names) })),
-    makeStat(translate("linuxX86"), linux.present, translate("withoutX86", { count: formatNumber(linux.missing) })),
-    makeStat(translate("linuxX64"), linux64.present, translate("withoutX64", { count: formatNumber(linux64.missing) })),
-    makeStat(translate("bytePattern"), linux["byte-pattern"] + linux64["byte-pattern"], translate("currentFiles")),
-  );
+  ];
+  if (selectedGame === "tf2c") {
+    stats.push(
+      makeStat(translate("linuxX64"), linux64.present, translate("symbolCount")),
+      makeStat(translate("bytePattern"), linux64["byte-pattern"], translate("currentFiles")),
+    );
+  } else {
+    stats.push(
+      makeStat(translate("linuxX86"), linux.present, translate("withoutX86", { count: formatNumber(linux.missing) })),
+      makeStat(translate("linuxX64"), linux64.present, translate("withoutX64", { count: formatNumber(linux64.missing) })),
+      makeStat(translate("bytePattern"), linux["byte-pattern"] + linux64["byte-pattern"], translate("currentFiles")),
+    );
+  }
   summary.hidden = false;
+  summary.classList.toggle("stats-three", selectedGame === "tf2c");
+  summary.replaceChildren(...stats);
   document.querySelector("#data-version").textContent = translate("updated", { date: formatDate(index.generatedAt) });
-  const byLibrary = index.stats.byLibrary ?? {};
-  document.querySelector("#tf2-total").textContent = formatNumber(index.stats.entries);
-  document.querySelector("#tf2-engine").textContent = formatNumber(byLibrary.engine ?? 0);
-  document.querySelector("#tf2-server").textContent = formatNumber(byLibrary.server ?? 0);
+  document.querySelector("#game-note").hidden = selectedGame !== "tf2c";
 }
 
 function makePlatformBlock(label, signature) {
@@ -355,22 +382,25 @@ function makePlatformBlock(label, signature) {
 
   const codeRow = element("div", "code-row");
   const code = element("code", "signature-value", signature.value);
-  const copy = element("button", "button button-copy", translate("copy"));
-  copy.type = "button";
-  copy.dataset.copyValue = signature.value;
-  codeRow.append(code, copy);
+  codeRow.append(code);
   block.append(codeRow);
 
+  const footer = element("div", "signature-footer");
   if (signature.offsets.length) {
     const details = formatModuleOffset(signature.offsets);
     const offset = element("div", "offsets", details.text);
     offset.title = details.title;
-    block.append(offset);
+    footer.append(offset);
   }
+  const copy = element("button", "button button-copy", translate("copy"));
+  copy.type = "button";
+  copy.dataset.copyValue = signature.value;
+  footer.append(copy);
+  block.append(footer);
   return block;
 }
 
-function makeResultCard(entry) {
+function makeResultCard(entry, selectedGame) {
   const card = element("article", "result-card");
   const header = element("div", "result-header");
   const title = element("h3", "result-name", entry.name);
@@ -385,11 +415,15 @@ function makeResultCard(entry) {
   link.rel = "noreferrer";
   source.append(link);
 
-  const platforms = element("div", "platforms");
-  platforms.append(
-    makePlatformBlock(translate("linuxX86Platform"), entry.linux),
-    makePlatformBlock(translate("linuxX64Platform"), entry.linux64),
-  );
+  const platforms = element("div", `platforms${selectedGame === "tf2c" ? " single-platform" : ""}`);
+  if (selectedGame === "tf2c") {
+    platforms.append(makePlatformBlock(translate("linuxX64Platform"), entry.linux64));
+  } else {
+    platforms.append(
+      makePlatformBlock(translate("linuxX86Platform"), entry.linux),
+      makePlatformBlock(translate("linuxX64Platform"), entry.linux64),
+    );
+  }
 
   card.append(header, source, platforms);
   return card;
@@ -436,6 +470,8 @@ async function copyText(value) {
 
 function init() {
   initThemePicker();
+  const selectedGame = normalizeGame(new URLSearchParams(window.location.search).get("game"));
+  document.documentElement.dataset.game = selectedGame;
 
   const queryInput = document.querySelector("#query");
   const sourceInput = document.querySelector("#source");
@@ -450,12 +486,18 @@ function init() {
   const reset = document.querySelector("#reset");
 
   const filters = readFilters();
+  if (selectedGame === "tf2c") {
+    document.querySelectorAll('[data-game-filter="tf2"]').forEach((option) => { option.hidden = true; });
+    document.querySelector('#source option[value="engine"]').hidden = true;
+    if (["linux", "both", "missing"].includes(filters.arch)) filters.arch = "all";
+    if (filters.source === "engine") filters.source = "all";
+  }
   queryInput.value = filters.query;
   sourceInput.value = filters.source;
   archInput.value = filters.arch;
   kindInput.value = filters.kind;
 
-  const state = { index: null, filtered: [], rendered: 0 };
+  const state = { catalog: null, index: null, filtered: [], rendered: 0 };
 
   function currentFilters() {
     return {
@@ -470,7 +512,7 @@ function init() {
     if (!state.index || state.rendered >= state.filtered.length) return;
     const next = state.filtered.slice(state.rendered, state.rendered + PAGE_SIZE);
     const fragment = document.createDocumentFragment();
-    next.forEach((entry) => fragment.append(makeResultCard(entry)));
+    next.forEach((entry) => fragment.append(makeResultCard(entry, selectedGame)));
     results.append(fragment);
     state.rendered += next.length;
     sentinel.hidden = state.rendered >= state.filtered.length;
@@ -491,16 +533,13 @@ function init() {
   }
 
   initLanguagePicker(() => {
-    if (!state.index) return;
-    renderSummary(state.index);
+    document.title = translate(selectedGame === "tf2c" ? "titleTf2c" : "titleTf2");
+    if (!state.catalog) return;
+    renderGameCards(state.catalog.games, selectedGame);
+    renderSummary(state.index, selectedGame);
     applyFilters();
   });
-
-  function chooseSource(source) {
-    sourceInput.value = source;
-    if (state.index) applyFilters();
-    document.querySelector("#catalog")?.scrollIntoView({ behavior: "smooth", block: "start" });
-  }
+  document.title = translate(selectedGame === "tf2c" ? "titleTf2c" : "titleTf2");
 
   results.addEventListener("click", async (event) => {
     const button = event.target.closest("[data-copy-value]");
@@ -525,24 +564,23 @@ function init() {
     queryInput.focus();
   });
 
-  document.querySelectorAll("[data-source-choice]").forEach((button) => {
-    button.addEventListener("click", () => chooseSource(button.dataset.sourceChoice));
-  });
-
   const observer = new IntersectionObserver((observations) => {
     if (observations.some((observation) => observation.isIntersecting)) renderMore();
   }, { rootMargin: "480px" });
   observer.observe(sentinel);
 
   status.textContent = translate("loadingIndex");
-  fetch("./data/index.json", { cache: "no-store" })
+  fetch("./data/catalog.json", { cache: "no-store" })
     .then((response) => {
       if (!response.ok) throw new Error(`HTTP ${response.status}`);
       return response.json();
     })
-    .then((index) => {
-      state.index = index;
-      renderSummary(index);
+    .then((catalog) => {
+      if (!catalog.games?.[selectedGame]) throw new Error(`Missing catalog for ${selectedGame}`);
+      state.catalog = catalog;
+      state.index = catalog.games[selectedGame];
+      renderGameCards(catalog.games, selectedGame);
+      renderSummary(state.index, selectedGame);
       loading.hidden = true;
       applyFilters();
     })

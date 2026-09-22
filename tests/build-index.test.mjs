@@ -3,6 +3,7 @@ import assert from "node:assert/strict";
 
 import {
   buildIndex,
+  buildCatalogFromDisk,
   buildIndexFromDisk,
   classifySignature,
   parseGameDataText,
@@ -11,6 +12,7 @@ import {
   filterEntries,
   formatModuleOffset,
   normalizeLanguagePreference,
+  normalizeGame,
   normalizeThemePreference,
   resolveLocale,
   resolveTheme,
@@ -107,6 +109,27 @@ test("includes reviewed Linux byte-patterns in the published TF2 index", () => {
   );
   assert.equal(index.stats.platforms.linux.unknown, 0);
   assert.equal(index.stats.platforms.linux64.unknown, 0);
+});
+
+test("builds a separate x64-only Classified catalog with signatures but no offsets", () => {
+  const catalog = buildCatalogFromDisk();
+  const tf2c = catalog.games.tf2c;
+
+  assert.equal(catalog.games.tf2.entries.length, 61569);
+  assert.equal(tf2c.entries.length, 31);
+  assert.equal(tf2c.stats.platforms.linux.present, 0);
+  assert.equal(tf2c.stats.platforms.linux64.present, 31);
+  assert.equal(tf2c.stats.platforms.linux64.symbol, 31);
+  assert.equal(tf2c.stats.platforms.linux64["byte-pattern"], 0);
+  assert.ok(tf2c.entries.every((entry) => entry.linux === null));
+  assert.ok(tf2c.entries.every((entry) => entry.linux64?.kind === "symbol"));
+  assert.ok(tf2c.entries.every((entry) => entry.linux64.offsets.length === 0));
+});
+
+test("normalizes the selected game and safely defaults unknown values to TF2", () => {
+  assert.equal(normalizeGame("tf2c"), "tf2c");
+  assert.equal(normalizeGame("tf2"), "tf2");
+  assert.equal(normalizeGame("unknown"), "tf2");
 });
 
 test("filters entries by partial name, library, architecture, and kind", () => {
