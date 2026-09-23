@@ -75,7 +75,6 @@ h1, h2, h3, p { margin: 0; }
 h1, h2, h3 { font-weight: 650; }
 
 .topbar {
-  border-top: 3px solid var(--foreground);
   border-bottom: 1px solid var(--border);
   background: color-mix(in srgb, var(--background) 94%, transparent);
 }

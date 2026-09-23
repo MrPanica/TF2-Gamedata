@@ -135,3 +135,11 @@ python -m http.server 4173 --directory dist
 ```
 
 Сборка создаёт манифест игр и отдельный файл данных для каждой игры в `dist/data/`. Браузер загружает каталог только выбранной игры. Исходные файлы GameData остаются первоисточником данных.
+
+## Third-party UI components
+
+The site uses project-specific HTML, CSS, and JavaScript; it does not use UI components, templates, or frontend frameworks from other GitHub repositories. GitHub links elsewhere in this README are references to upstream technical documentation and APIs, not reused interface code.
+
+## Сторонние компоненты интерфейса
+
+Сайт использует собственные HTML, CSS и JavaScript и не включает компоненты интерфейса, шаблоны или frontend-фреймворки из других GitHub-репозиториев. Ссылки на GitHub выше ведут на техническую документацию и API исходных проектов; их интерфейсный код здесь не используется.
