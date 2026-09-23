@@ -172,9 +172,6 @@ h1, h2, h3 { font-weight: 650; }
 .result-card { padding: 17px; }
 .result-header { align-items: flex-start; justify-content: space-between; gap: 14px; }
 .result-name { max-width: 900px; color: var(--foreground); font: 600 1rem/1.35 ui-monospace, SFMono-Regular, Consolas, "Liberation Mono", monospace; overflow-wrap: anywhere; }
-.source-line { display: flex; align-items: center; flex-wrap: nowrap; gap: 4px; font-size: .64rem; white-space: nowrap; }
-.source-link { color: var(--accent-strong); font-size: .95rem; line-height: 1; text-decoration: none; }
-.source-link:hover { color: var(--foreground); }
 .badge { display: inline-flex; flex: 0 0 auto; align-items: center; min-height: 22px; border: 1px solid var(--border-strong); border-radius: 999px; padding: 0 8px; font-size: .68rem; font-weight: 700; white-space: nowrap; }
 .badge-library { color: var(--blue); border-color: color-mix(in srgb, var(--blue) 32%, transparent); background: color-mix(in srgb, var(--blue) 9%, transparent); }
 .badge-accent { color: var(--accent-strong); border-color: color-mix(in srgb, var(--accent) 32%, transparent); background: color-mix(in srgb, var(--accent) 9%, transparent); }
@@ -183,13 +180,11 @@ h1, h2, h3 { font-weight: 650; }
 .platforms { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; margin-top: 14px; }
 .platforms.single-platform { grid-template-columns: minmax(0, 1fr); }
 .platform-block { min-width: 0; border: 1px solid var(--border); border-radius: 4px; padding: 12px; background: var(--surface-raised); }
-.platform-heading { justify-content: flex-start; flex-wrap: wrap; gap: 8px; }
+.platform-heading { justify-content: flex-start; flex-wrap: wrap; gap: 6px 8px; }
 .platform-label { color: var(--muted); font-size: .75rem; font-weight: 700; }
-.code-row { align-items: flex-start; gap: 8px; margin-top: 11px; }
+.code-row { align-items: flex-start; gap: 8px; margin-top: 8px; }
 .signature-value { min-width: 0; flex: 1; overflow: auto; padding: 8px 9px; border-radius: 3px; color: var(--foreground); background: var(--background); font: .75rem/1.45 ui-monospace, SFMono-Regular, Consolas, monospace; white-space: pre-wrap; overflow-wrap: anywhere; }
-.signature-footer { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-top: 8px; }
-.signature-details { display: flex; align-items: center; flex-wrap: nowrap; gap: 4px; min-width: 0; white-space: nowrap; }
-.offsets { color: var(--muted); font: .64rem ui-monospace, SFMono-Regular, Consolas, monospace; white-space: nowrap; }
+.offsets { min-width: 0; margin-left: auto; color: var(--muted); font: .64rem ui-monospace, SFMono-Regular, Consolas, monospace; text-align: right; overflow-wrap: anywhere; }
 .missing-text { margin-top: 11px; color: var(--muted); font-size: .78rem; }
 .state { display: grid; gap: 4px; padding: 19px; color: var(--muted); }
 .state strong { color: var(--foreground); }

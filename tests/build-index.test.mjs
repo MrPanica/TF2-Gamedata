@@ -19,7 +19,6 @@ import {
   normalizeThemePreference,
   resolveLocale,
   resolveTheme,
-  sourceHref,
 } from "../site/app.js";
 import { reviewCandidates } from "../tools/review-linux-byte-patterns.mjs";
 
@@ -308,20 +307,18 @@ test("formats module offsets with a localized tooltip instead of the raw technic
   });
 });
 
-test("formats architecture labels and source links for result cards", () => {
+test("formats Linux architecture labels for result cards", () => {
   assert.equal(formatPlatformLabel("linux"), "Linux x86");
   assert.equal(formatPlatformLabel("linux64"), "Linux x64");
-  assert.equal(
-    sourceHref({ sourceFile: "tf2-function-signatures.game.engine.txt", sourceLine: 63 }),
-    "https://github.com/MrPanica/TF2-Gamedata/blob/main/tf2-function-signatures.game.engine.txt#L63",
-  );
 });
 
-test("keeps the module offset, source line, and source link on one compact footer row", () => {
+test("shows module offsets in the platform heading and omits source-line UI", () => {
+  const app = fs.readFileSync(new URL("../site/app.js", import.meta.url), "utf8");
   const styles = fs.readFileSync(new URL("../site/styles.css", import.meta.url), "utf8");
 
-  assert.match(styles, /\.signature-details\s*\{[^}]*flex-wrap:\s*nowrap/);
-  assert.match(styles, /\.source-line\s*\{[^}]*white-space:\s*nowrap/);
+  assert.match(app, /const offset = element\("span", "offsets", moduleOffset\.text\);\s*offset\.title = moduleOffset\.title;\s*heading\.append\(offset\);/);
+  assert.doesNotMatch(app, /SOURCE_URL|sourceHref|makeSourceLine|source-line|signature-footer/);
+  assert.doesNotMatch(styles, /\.source-line|\.source-link|\.signature-footer|\.signature-details/);
 });
 
 test("normalizes and resolves the saved theme preference", () => {

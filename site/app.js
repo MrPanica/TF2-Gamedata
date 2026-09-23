@@ -1,5 +1,4 @@
 const PAGE_SIZE = 80;
-const SOURCE_URL = "https://github.com/MrPanica/TF2-Gamedata/blob/main/";
 const THEME_STORAGE_KEY = "tf2-gamedata-theme";
 const LANGUAGE_STORAGE_KEY = "tf2-gamedata-language";
 
@@ -60,7 +59,6 @@ const translations = {
     copy: "Копировать",
     copied: "Скопировано",
     copyFailed: "Не удалось",
-    openSource: "Открыть строку исходника в GitHub",
     linuxX86Platform: "x86",
     linuxX64Platform: "x64",
     foundShown: "Найдено {found} · показано {shown}",
@@ -125,7 +123,6 @@ const translations = {
     copy: "Copy",
     copied: "Copied",
     copyFailed: "Failed",
-    openSource: "Open source line on GitHub",
     linuxX86Platform: "x86",
     linuxX64Platform: "x64",
     foundShown: "Found {found} · showing {shown}",
@@ -309,23 +306,6 @@ export function formatPlatformLabel(platform) {
   return platform === "linux64" ? "Linux x64" : "Linux x86";
 }
 
-export function sourceHref(entry) {
-  return `${SOURCE_URL}${encodeURIComponent(entry.sourceFile)}#L${entry.sourceLine}`;
-}
-
-function makeSourceLine(entry) {
-  const source = element("div", "source-line");
-  source.append(element("span", "muted", `${entry.sourceFile}:${entry.sourceLine}`));
-  const link = element("a", "source-link", "↗");
-  link.href = sourceHref(entry);
-  link.target = "_blank";
-  link.rel = "noreferrer";
-  link.title = translate("openSource");
-  link.setAttribute("aria-label", translate("openSource"));
-  source.append(link);
-  return source;
-}
-
 function makeCopyIcon() {
   const svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
   svg.setAttribute("viewBox", "0 0 24 24");
@@ -404,7 +384,7 @@ function renderSummary(index, selectedGame) {
   document.querySelector("#game-note").hidden = selectedGame !== "tf2c";
 }
 
-function makePlatformBlock(label, signature, entry) {
+function makePlatformBlock(label, signature) {
   const block = element("div", "platform-block");
   const heading = element("div", "platform-heading");
   heading.append(element("span", "platform-label", label));
@@ -416,6 +396,12 @@ function makePlatformBlock(label, signature, entry) {
   }
 
   heading.append(element("span", `badge ${signature.kind === "byte-pattern" ? "badge-warning" : "badge-accent"}`, signatureLabel(signature.kind)));
+  if (signature.offsets.length) {
+    const moduleOffset = formatModuleOffset(signature.offsets);
+    const offset = element("span", "offsets", moduleOffset.text);
+    offset.title = moduleOffset.title;
+    heading.append(offset);
+  }
   block.append(heading);
 
   const codeRow = element("div", "code-row");
@@ -428,18 +414,6 @@ function makePlatformBlock(label, signature, entry) {
   copy.append(makeCopyIcon());
   codeRow.append(code, copy);
   block.append(codeRow);
-
-  const footer = element("div", "signature-footer");
-  const details = element("div", "signature-details");
-  if (signature.offsets.length) {
-    const moduleOffset = formatModuleOffset(signature.offsets);
-    const offset = element("div", "offsets", moduleOffset.text);
-    offset.title = moduleOffset.title;
-    details.append(offset);
-  }
-  details.append(makeSourceLine(entry));
-  footer.append(details);
-  block.append(footer);
   return block;
 }
 
@@ -452,11 +426,11 @@ function makeResultCard(entry, selectedGame) {
 
   const platforms = element("div", `platforms${selectedGame === "tf2c" ? " single-platform" : ""}`);
   if (selectedGame === "tf2c") {
-    platforms.append(makePlatformBlock(formatPlatformLabel("linux64"), entry.linux64, entry));
+    platforms.append(makePlatformBlock(formatPlatformLabel("linux64"), entry.linux64));
   } else {
     platforms.append(
-      makePlatformBlock(formatPlatformLabel("linux"), entry.linux, entry),
-      makePlatformBlock(formatPlatformLabel("linux64"), entry.linux64, entry),
+      makePlatformBlock(formatPlatformLabel("linux"), entry.linux),
+      makePlatformBlock(formatPlatformLabel("linux64"), entry.linux64),
     );
   }
 

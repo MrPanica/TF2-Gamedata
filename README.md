@@ -138,8 +138,8 @@ python -m http.server 4173 --directory dist
 
 ## Third-party UI components
 
-The site uses project-specific HTML, CSS, and JavaScript; it does not use UI components, templates, or frontend frameworks from other GitHub repositories. GitHub links elsewhere in this README are references to upstream technical documentation and APIs, not reused interface code.
+The original [VTable Dumper](https://github.com/asherkin/vtable) page was used as a visual reference for the catalog's general layout. Its source code, HTML/CSS, and UI components are not reused here; the catalog interface is implemented specifically for this project.
 
 ## Сторонние компоненты интерфейса
 
-Сайт использует собственные HTML, CSS и JavaScript и не включает компоненты интерфейса, шаблоны или frontend-фреймворки из других GitHub-репозиториев. Ссылки на GitHub выше ведут на техническую документацию и API исходных проектов; их интерфейсный код здесь не используется.
+Страница [VTable Dumper](https://github.com/asherkin/vtable) послужила визуальным ориентиром для общей компоновки каталога. Её исходный код, HTML/CSS и компоненты интерфейса здесь не используются: интерфейс каталога написан специально для этого проекта.
