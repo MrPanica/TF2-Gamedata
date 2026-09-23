@@ -61,7 +61,7 @@ const translations = {
     copy: "Копировать",
     copied: "Скопировано",
     copyFailed: "Не удалось",
-    openSource: "Открыть источник",
+    openSource: "Открыть строку исходника в GitHub",
     linuxX86Platform: "x86",
     linuxX64Platform: "x64",
     foundShown: "Найдено {found} · показано {shown}",
@@ -127,7 +127,7 @@ const translations = {
     copy: "Copy",
     copied: "Copied",
     copyFailed: "Failed",
-    openSource: "Open source",
+    openSource: "Open source line on GitHub",
     linuxX86Platform: "x86",
     linuxX64Platform: "x64",
     foundShown: "Found {found} · showing {shown}",
@@ -307,8 +307,49 @@ export function formatModuleOffset(offsets, locale = currentLocale) {
   };
 }
 
-function sourceHref(entry) {
+export function formatPlatformLabel(platform) {
+  return platform === "linux64" ? "Linux x64" : "Linux x86";
+}
+
+export function sourceHref(entry) {
   return `${SOURCE_URL}${encodeURIComponent(entry.sourceFile)}#L${entry.sourceLine}`;
+}
+
+function makeSourceLine(entry) {
+  const source = element("div", "source-line");
+  source.append(element("span", "muted", `${entry.sourceFile}:${entry.sourceLine}`));
+  const link = element("a", "source-link", "↗");
+  link.href = sourceHref(entry);
+  link.target = "_blank";
+  link.rel = "noreferrer";
+  link.title = translate("openSource");
+  link.setAttribute("aria-label", translate("openSource"));
+  source.append(link);
+  return source;
+}
+
+function makeCopyIcon() {
+  const svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
+  svg.setAttribute("viewBox", "0 0 24 24");
+  svg.setAttribute("width", "17");
+  svg.setAttribute("height", "17");
+  svg.setAttribute("aria-hidden", "true");
+  svg.setAttribute("focusable", "false");
+  svg.setAttribute("fill", "none");
+  svg.setAttribute("stroke", "currentColor");
+  svg.setAttribute("stroke-width", "1.8");
+  svg.setAttribute("stroke-linecap", "round");
+  svg.setAttribute("stroke-linejoin", "round");
+  const page = document.createElementNS("http://www.w3.org/2000/svg", "rect");
+  page.setAttribute("x", "8");
+  page.setAttribute("y", "8");
+  page.setAttribute("width", "13");
+  page.setAttribute("height", "13");
+  page.setAttribute("rx", "2");
+  const backPage = document.createElementNS("http://www.w3.org/2000/svg", "path");
+  backPage.setAttribute("d", "M16 8V5a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v11a2 2 0 0 0 2 2h3");
+  svg.append(page, backPage);
+  return svg;
 }
 
 function makeStat(label, value, hint) {
@@ -366,7 +407,7 @@ function renderSummary(index, selectedGame) {
   document.querySelector("#game-note").hidden = selectedGame !== "tf2c";
 }
 
-function makePlatformBlock(label, signature) {
+function makePlatformBlock(label, signature, entry) {
   const block = element("div", "platform-block");
   const heading = element("div", "platform-heading");
   heading.append(element("span", "platform-label", label));
@@ -382,20 +423,25 @@ function makePlatformBlock(label, signature) {
 
   const codeRow = element("div", "code-row");
   const code = element("code", "signature-value", signature.value);
-  codeRow.append(code);
+  const copy = element("button", "button button-copy");
+  copy.type = "button";
+  copy.dataset.copyValue = signature.value;
+  copy.title = translate("copy");
+  copy.setAttribute("aria-label", translate("copy"));
+  copy.append(makeCopyIcon());
+  codeRow.append(code, copy);
   block.append(codeRow);
 
   const footer = element("div", "signature-footer");
+  const details = element("div", "signature-details");
   if (signature.offsets.length) {
-    const details = formatModuleOffset(signature.offsets);
-    const offset = element("div", "offsets", details.text);
-    offset.title = details.title;
-    footer.append(offset);
+    const moduleOffset = formatModuleOffset(signature.offsets);
+    const offset = element("div", "offsets", moduleOffset.text);
+    offset.title = moduleOffset.title;
+    details.append(offset);
   }
-  const copy = element("button", "button button-copy", translate("copy"));
-  copy.type = "button";
-  copy.dataset.copyValue = signature.value;
-  footer.append(copy);
+  details.append(makeSourceLine(entry));
+  footer.append(details);
   block.append(footer);
   return block;
 }
@@ -407,25 +453,17 @@ function makeResultCard(entry, selectedGame) {
   const library = element("span", "badge badge-library", entry.library);
   header.append(title, library);
 
-  const source = element("div", "source-line");
-  source.append(element("span", "muted", `${entry.sourceFile}:${entry.sourceLine}`));
-  const link = element("a", "source-link", translate("openSource"));
-  link.href = sourceHref(entry);
-  link.target = "_blank";
-  link.rel = "noreferrer";
-  source.append(link);
-
   const platforms = element("div", `platforms${selectedGame === "tf2c" ? " single-platform" : ""}`);
   if (selectedGame === "tf2c") {
-    platforms.append(makePlatformBlock(translate("linuxX64Platform"), entry.linux64));
+    platforms.append(makePlatformBlock(formatPlatformLabel("linux64"), entry.linux64, entry));
   } else {
     platforms.append(
-      makePlatformBlock(translate("linuxX86Platform"), entry.linux),
-      makePlatformBlock(translate("linuxX64Platform"), entry.linux64),
+      makePlatformBlock(formatPlatformLabel("linux"), entry.linux, entry),
+      makePlatformBlock(formatPlatformLabel("linux64"), entry.linux64, entry),
     );
   }
 
-  card.append(header, source, platforms);
+  card.append(header, platforms);
   return card;
 }
 
@@ -545,9 +583,16 @@ function init() {
     const button = event.target.closest("[data-copy-value]");
     if (!button) return;
     const copied = await copyText(button.dataset.copyValue);
-    const oldText = button.textContent;
-    button.textContent = copied ? translate("copied") : translate("copyFailed");
-    window.setTimeout(() => { button.textContent = oldText; }, 1400);
+    const state = copied ? "copied" : "failed";
+    const label = translate(copied ? "copied" : "copyFailed");
+    button.dataset.copyState = state;
+    button.title = label;
+    button.setAttribute("aria-label", label);
+    window.setTimeout(() => {
+      delete button.dataset.copyState;
+      button.title = translate("copy");
+      button.setAttribute("aria-label", translate("copy"));
+    }, 1400);
   });
 
   [queryInput, sourceInput, archInput, kindInput].forEach((control) => {

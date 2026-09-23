@@ -11,12 +11,14 @@ import {
 } from "../tools/build-index.mjs";
 import {
   filterEntries,
+  formatPlatformLabel,
   formatModuleOffset,
   normalizeLanguagePreference,
   normalizeGame,
   normalizeThemePreference,
   resolveLocale,
   resolveTheme,
+  sourceHref,
 } from "../site/app.js";
 import { reviewCandidates } from "../tools/review-linux-byte-patterns.mjs";
 
@@ -211,6 +213,15 @@ test("formats module offsets with a localized tooltip instead of the raw technic
     text: "Module offset: 0x1230",
     title: "Signature address relative to the beginning of the ELF module.",
   });
+});
+
+test("formats architecture labels and source links for result cards", () => {
+  assert.equal(formatPlatformLabel("linux"), "Linux x86");
+  assert.equal(formatPlatformLabel("linux64"), "Linux x64");
+  assert.equal(
+    sourceHref({ sourceFile: "tf2-function-signatures.game.engine.txt", sourceLine: 63 }),
+    "https://github.com/MrPanica/TF2-Gamedata/blob/main/tf2-function-signatures.game.engine.txt#L63",
+  );
 });
 
 test("normalizes and resolves the saved theme preference", () => {
