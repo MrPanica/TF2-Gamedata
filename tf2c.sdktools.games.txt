@@ -1,0 +1,17 @@
+	/* TF2 Classified — locally available sdktools Linux64 symbols */
+	"tf2classified"
+	{
+		"Signatures"
+		{
+			"FireOutput"
+			{
+				"library"	"server"
+				"linux64"	"@_ZN17CBaseEntityOutput10FireOutputE9variant_tP11CBaseEntityS2_f"
+			}
+			"LookupAttachment"
+			{
+				"library"	"server"
+				"linux64"	"@_ZN14CBaseAnimating16LookupAttachmentEPKc"
+			}
+		}
+	}

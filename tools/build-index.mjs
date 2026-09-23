@@ -7,7 +7,12 @@ const SOURCE_FILES = [
   "tf2-function-signatures.game.engine.txt",
   "tf2-function-signatures.game.server.txt",
 ];
-const TF2C_SOURCE_FILES = ["tf2c-function-signatures.game.server.txt"];
+const TF2C_SOURCE_FILES = [
+  "tf2c-function-signatures.game.server.txt",
+  "tf2c.sdktools.games.txt",
+  "tf2c.binary.engine.txt",
+  "tf2c.binary.server.txt",
+];
 
 const PLATFORM_KEYS = ["linux", "linux64"];
 
@@ -62,7 +67,7 @@ export function parseGameDataText(text, sourceFile) {
 
   lines.forEach((line, index) => {
     const sourceLine = index + 1;
-    const nameMatch = line.match(/^\s{12}"((?:\\.|[^"])*)"\s*$/);
+    const nameMatch = line.match(/^(?: {12,}|\t{3,})"((?:\\.|[^"])*)"\s*$/);
 
     if (nameMatch) {
       flush();
@@ -150,7 +155,8 @@ export function buildIndex(files, generatedAt = new Date().toISOString(), review
 
   const names = new Map();
   for (const entry of entries) {
-    names.set(entry.name, (names.get(entry.name) ?? 0) + 1);
+    const key = `${entry.library}|${entry.name}`;
+    names.set(key, (names.get(key) ?? 0) + 1);
   }
 
   const sources = Object.fromEntries(
@@ -237,6 +243,19 @@ export function buildCatalogFromDisk(root = ROOT) {
   };
 }
 
+export function buildCatalogManifest(catalog) {
+  return {
+    schemaVersion: catalog.schemaVersion,
+    generatedAt: catalog.generatedAt,
+    games: Object.fromEntries(
+      Object.entries(catalog.games).map(([game, index]) => [game, {
+        dataFile: `${game}.json`,
+        stats: index.stats,
+      }]),
+    ),
+  };
+}
+
 function copySite(root, dist) {
   fs.mkdirSync(dist, { recursive: true });
   fs.cpSync(path.join(root, "site"), dist, { recursive: true });
@@ -249,11 +268,11 @@ export function writeBuild(root = ROOT) {
   fs.rmSync(dist, { recursive: true, force: true });
   copySite(root, dist);
   fs.mkdirSync(path.join(dist, "data"), { recursive: true });
-  fs.writeFileSync(
-    path.join(dist, "data", "catalog.json"),
-    `${JSON.stringify(catalog)}\n`,
-    "utf8",
-  );
+  for (const [game, index] of Object.entries(catalog.games)) {
+    fs.writeFileSync(path.join(dist, "data", `${game}.json`), `${JSON.stringify(index)}\n`, "utf8");
+  }
+  const manifest = buildCatalogManifest(catalog);
+  fs.writeFileSync(path.join(dist, "data", "catalog-manifest.json"), `${JSON.stringify(manifest)}\n`, "utf8");
 
   return { catalog, dist };
 }
@@ -263,7 +282,7 @@ function runCli() {
   const result = mode === "--build"
     ? writeBuild()
     : { catalog: buildCatalogFromDisk() };
-  const catalogPath = path.join(result.dist ?? path.join(ROOT, "dist"), "data", "catalog.json");
+  const catalogPath = path.join(result.dist ?? path.join(ROOT, "dist"), "data", "catalog-manifest.json");
   if (mode === "--build") {
     console.log(`Built ${catalogPath} (${fs.statSync(catalogPath).size} bytes)`);
   }

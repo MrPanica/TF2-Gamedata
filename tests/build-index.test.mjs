@@ -4,6 +4,7 @@ import assert from "node:assert/strict";
 import {
   buildIndex,
   buildCatalogFromDisk,
+  buildCatalogManifest,
   buildIndexFromDisk,
   classifySignature,
   parseGameDataText,
@@ -75,6 +76,28 @@ test("parses names, libraries, platform values, and offsets", () => {
   assert.equal(entries[2].linux64.value, "@_Z12Linux64Onlyv");
 });
 
+test("parses three-tab SourceMod signature exports", () => {
+  const text = [
+    '\t"tf2classified"',
+    "\t{",
+    '\t\t"Signatures"',
+    "\t\t{",
+    '\t\t\t"ClassifiedFunction"',
+    "\t\t\t{",
+    '\t\t\t\t"library"\t"engine"',
+    '\t\t\t\t"linux64"\t"\\x48\\x89\\xE5"',
+    "\t\t\t}",
+    "\t\t}",
+    "\t}",
+  ].join("\n");
+  const [entry] = parseGameDataText(text, "tf2c.binary.engine.txt");
+
+  assert.equal(entry.name, "ClassifiedFunction");
+  assert.equal(entry.library, "engine");
+  assert.equal(entry.linux64.value, "\\x48\\x89\\xE5");
+  assert.equal(entry.linux, null);
+});
+
 test("builds stats without collapsing duplicate names", () => {
   const index = buildIndex([
     { fileName: "engine.txt", text: fixture },
@@ -97,6 +120,8 @@ test("includes reviewed Linux byte-patterns in the published TF2 index", () => {
 
   assert.ok(index.entries.length > 60000);
   assert.equal(ids.size, index.entries.length);
+  assert.equal(index.stats.duplicates.names, 0);
+  assert.equal(index.stats.duplicates.extraEntries, 0);
   assert.equal(index.stats.platforms.linux["byte-pattern"], 115);
   assert.equal(index.stats.platforms.linux64["byte-pattern"], 109);
   assert.equal(index.stats.platforms.linux.present, 60992);
@@ -116,14 +141,38 @@ test("builds a separate x64-only Classified catalog with signatures but no offse
   const tf2c = catalog.games.tf2c;
 
   assert.equal(catalog.games.tf2.entries.length, 61569);
-  assert.equal(tf2c.entries.length, 31);
+  assert.equal(tf2c.entries.length, 9369);
+  assert.deepEqual(tf2c.stats.byLibrary, { engine: 3595, server: 5774 });
   assert.equal(tf2c.stats.platforms.linux.present, 0);
-  assert.equal(tf2c.stats.platforms.linux64.present, 31);
-  assert.equal(tf2c.stats.platforms.linux64.symbol, 31);
-  assert.equal(tf2c.stats.platforms.linux64["byte-pattern"], 0);
+  assert.equal(tf2c.stats.platforms.linux64.present, 9369);
+  assert.equal(tf2c.stats.platforms.linux64.symbol, 1584);
+  assert.equal(tf2c.stats.platforms.linux64["byte-pattern"], 7785);
+  assert.equal(tf2c.stats.duplicates.names, 0);
+  assert.equal(tf2c.stats.duplicates.extraEntries, 0);
+  assert.equal(
+    new Set(tf2c.entries.map((entry) => `${entry.library}|${entry.name}`)).size,
+    tf2c.entries.length,
+  );
+  assert.equal(
+    new Set(tf2c.entries.map((entry) => `${entry.library}|${entry.linux64.value}`)).size,
+    tf2c.entries.length,
+  );
   assert.ok(tf2c.entries.every((entry) => entry.linux === null));
-  assert.ok(tf2c.entries.every((entry) => entry.linux64?.kind === "symbol"));
+  assert.ok(tf2c.entries.every((entry) => ["symbol", "byte-pattern"].includes(entry.linux64?.kind)));
   assert.ok(tf2c.entries.every((entry) => entry.linux64.offsets.length === 0));
+});
+
+test("publishes a small game manifest that points to per-game data files", () => {
+  const catalog = buildCatalogFromDisk();
+  const manifest = buildCatalogManifest(catalog);
+
+  assert.deepEqual(Object.keys(manifest.games), ["tf2", "tf2c"]);
+  assert.equal(manifest.games.tf2.dataFile, "tf2.json");
+  assert.equal(manifest.games.tf2c.dataFile, "tf2c.json");
+  assert.equal(manifest.games.tf2.stats.entries, 61569);
+  assert.equal(manifest.games.tf2c.stats.entries, 9369);
+  assert.ok(!("entries" in manifest.games.tf2));
+  assert.ok(!("entries" in manifest.games.tf2c));
 });
 
 test("normalizes the selected game and safely defaults unknown values to TF2", () => {

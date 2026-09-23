@@ -1,0 +1,54 @@
+{
+  "schemaVersion": 1,
+  "source": "TF2 Classified ELF symbols and byte-patterns mapped from TF2 GameData",
+  "binaries": {
+    "engineReference": {
+      "file": "engine_srv.so",
+      "sha256": "96254d754c3bc56d66e0d0d1a188b37e167f15d19386575d300463906e2eccb3"
+    },
+    "serverReference": {
+      "file": "server_srv.so",
+      "sha256": "f70ea14df49afaaff6a2a53640c86b81c48367d0e21939b02091835335373b1c"
+    },
+    "engine": {
+      "file": "engine_srv.so",
+      "sha256": "96254d754c3bc56d66e0d0d1a188b37e167f15d19386575d300463906e2eccb3",
+      "elfClass": 64,
+      "machine": "EM_X86_64",
+      "functionSymbols": 8635,
+      "exportedFunctions": 30,
+      "writtenSignatures": 3595,
+      "sourceGameDataMatches": {
+        "anchors": 7999,
+        "symbolMatches": 30,
+        "patterns": 3565,
+        "missing": 143,
+        "ambiguous": 49,
+        "notUnique": 3934,
+        "incompatibleReference": 0
+      }
+    },
+    "server": {
+      "file": "server_srv.so",
+      "sha256": "de640fcb050eb53764845a95ea7428ee98ef90b4cc16ab340265c376cfd77016",
+      "elfClass": 64,
+      "machine": "EM_X86_64",
+      "functionSymbols": 67464,
+      "exportedFunctions": 1534,
+      "writtenSignatures": 5741,
+      "sourceGameDataMatches": {
+        "anchors": 53570,
+        "symbolMatches": 17,
+        "patterns": 4220,
+        "missing": 5142,
+        "ambiguous": 956,
+        "notUnique": 33415,
+        "incompatibleReference": 9591
+      }
+    }
+  },
+  "writtenSignatures": {
+    "engine": 3595,
+    "server": 5741
+  }
+}

@@ -327,15 +327,15 @@ function renderGameCards(games, selectedGame) {
     else card.removeAttribute("aria-current");
   });
 
-  const tf2 = games.tf2;
-  const tf2c = games.tf2c;
-  const tf2Libraries = tf2.stats.byLibrary ?? {};
-  const tf2cSymbols = tf2c.stats.platforms.linux64.symbol;
-  const tf2cPatterns = tf2c.stats.platforms.linux64["byte-pattern"];
-  document.querySelector("#tf2-total").textContent = formatNumber(tf2.stats.entries);
+  const tf2 = games.tf2.stats;
+  const tf2c = games.tf2c.stats;
+  const tf2Libraries = tf2.byLibrary ?? {};
+  const tf2cSymbols = tf2c.platforms.linux64.symbol;
+  const tf2cPatterns = tf2c.platforms.linux64["byte-pattern"];
+  document.querySelector("#tf2-total").textContent = formatNumber(tf2.entries);
   document.querySelector("#tf2-engine").textContent = formatNumber(tf2Libraries.engine ?? 0);
   document.querySelector("#tf2-server").textContent = formatNumber(tf2Libraries.server ?? 0);
-  document.querySelector("#tf2c-total").textContent = formatNumber(tf2c.stats.entries);
+  document.querySelector("#tf2c-total").textContent = formatNumber(tf2c.entries);
   document.querySelector("#tf2c-symbols").textContent = formatNumber(tf2cSymbols);
   document.querySelector("#tf2c-patterns").textContent = formatNumber(tf2cPatterns);
 }
@@ -349,8 +349,8 @@ function renderSummary(index, selectedGame) {
   ];
   if (selectedGame === "tf2c") {
     stats.push(
-      makeStat(translate("linuxX64"), linux64.present, translate("symbolCount")),
-      makeStat(translate("bytePattern"), linux64["byte-pattern"], translate("currentFiles")),
+      makeStat(translate("symbolCount"), linux64.symbol, translate("linuxX64Platform")),
+      makeStat(translate("bytePattern"), linux64["byte-pattern"], translate("linuxX64Platform")),
     );
   } else {
     stats.push(
@@ -570,17 +570,27 @@ function init() {
   observer.observe(sentinel);
 
   status.textContent = translate("loadingIndex");
-  fetch("./data/catalog.json", { cache: "no-store" })
+  fetch("./data/catalog-manifest.json", { cache: "no-store" })
     .then((response) => {
       if (!response.ok) throw new Error(`HTTP ${response.status}`);
       return response.json();
     })
-    .then((catalog) => {
-      if (!catalog.games?.[selectedGame]) throw new Error(`Missing catalog for ${selectedGame}`);
-      state.catalog = catalog;
-      state.index = catalog.games[selectedGame];
-      renderGameCards(catalog.games, selectedGame);
-      renderSummary(state.index, selectedGame);
+    .then((manifest) => {
+      const game = manifest.games?.[selectedGame];
+      if (!game?.dataFile) throw new Error(`Missing catalog for ${selectedGame}`);
+      renderGameCards(manifest.games, selectedGame);
+      return fetch(`./data/${game.dataFile}`, { cache: "no-store" })
+        .then((response) => {
+          if (!response.ok) throw new Error(`HTTP ${response.status}`);
+          return response.json();
+        })
+        .then((index) => ({ manifest, index }));
+    })
+    .then(({ manifest, index }) => {
+      state.catalog = manifest;
+      state.index = index;
+      renderGameCards(manifest.games, selectedGame);
+      renderSummary(index, selectedGame);
       loading.hidden = true;
       applyFilters();
     })
