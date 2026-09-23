@@ -1,5 +1,6 @@
 import test from "node:test";
 import assert from "node:assert/strict";
+import fs from "node:fs";
 
 import {
   buildIndex,
@@ -138,30 +139,103 @@ test("includes reviewed Linux byte-patterns in the published TF2 index", () => {
   assert.equal(index.stats.platforms.linux64.unknown, 0);
 });
 
-test("builds a separate x64-only Classified catalog with signatures but no offsets", () => {
+test("builds the full x64-only Classified catalog with ELF symbols prioritized and no offsets", () => {
   const catalog = buildCatalogFromDisk();
   const tf2c = catalog.games.tf2c;
 
+  for (const library of ["engine", "server"]) {
+    const gamedata = fs.readFileSync(new URL(`../tf2c.binary.${library}.txt`, import.meta.url), "utf8");
+    assert.match(gamedata, /^\/\*[^]*?\*\/\s*"Games"\s*\{\s*"tf2classified"/);
+  }
+
   assert.equal(catalog.games.tf2.entries.length, 61569);
-  assert.equal(tf2c.entries.length, 9369);
-  assert.deepEqual(tf2c.stats.byLibrary, { engine: 3595, server: 5774 });
+  assert.equal(tf2c.entries.length, 62389);
+  assert.deepEqual(tf2c.stats.byLibrary, { engine: 7726, server: 54663 });
   assert.equal(tf2c.stats.platforms.linux.present, 0);
-  assert.equal(tf2c.stats.platforms.linux64.present, 9369);
-  assert.equal(tf2c.stats.platforms.linux64.symbol, 1584);
-  assert.equal(tf2c.stats.platforms.linux64["byte-pattern"], 7785);
+  assert.equal(tf2c.stats.platforms.linux64.present, 62389);
+  assert.equal(tf2c.stats.platforms.linux64.symbol, 62389);
+  assert.equal(tf2c.stats.platforms.linux64["byte-pattern"], 0);
   assert.equal(tf2c.stats.duplicates.names, 0);
   assert.equal(tf2c.stats.duplicates.extraEntries, 0);
   assert.equal(
     new Set(tf2c.entries.map((entry) => `${entry.library}|${entry.name}`)).size,
     tf2c.entries.length,
   );
-  assert.equal(
-    new Set(tf2c.entries.map((entry) => `${entry.library}|${entry.linux64.value}`)).size,
-    tf2c.entries.length,
-  );
+  assert.ok(tf2c.entries.every((entry) => entry.linux64.kind === "symbol"));
+  assert.ok(tf2c.entries.every((entry) => entry.linux64.value.startsWith("@")));
+  const signaturesByValue = new Map();
+  for (const entry of tf2c.entries) {
+    const key = `${entry.library}|${entry.linux64.value}`;
+    signaturesByValue.set(key, [...(signaturesByValue.get(key) ?? []), entry]);
+  }
+  assert.ok([...signaturesByValue.values()]
+    .filter((group) => group.length > 1)
+    .every((group) => group.every((entry) => entry.linux64.kind === "symbol")));
   assert.ok(tf2c.entries.every((entry) => entry.linux === null));
-  assert.ok(tf2c.entries.every((entry) => ["symbol", "byte-pattern"].includes(entry.linux64?.kind)));
+  assert.ok(tf2c.entries.every((entry) => entry.linux64?.kind === "symbol"));
+  assert.ok(tf2c.entries.every((entry) => entry.linux64.value.length < 1024));
   assert.ok(tf2c.entries.every((entry) => entry.linux64.offsets.length === 0));
+
+  const finishReload = tf2c.entries.find((entry) => entry.name === "CBaseCombatWeapon::FinishReload()");
+  assert.equal(finishReload?.library, "server");
+  assert.equal(finishReload?.linux64.value, "@_ZN17CBaseCombatWeapon12FinishReloadEv");
+  assert.equal(finishReload?.linux64.kind, "symbol");
+});
+
+test("records the Classified symbol-first catalog policy and exact binary audit coverage", () => {
+  const audit = JSON.parse(fs.readFileSync(new URL("../artifacts/tf2c-binary-signatures-audit.json", import.meta.url), "utf8"));
+  const unresolved = JSON.parse(fs.readFileSync(new URL("../artifacts/tf2c-unresolved-signatures.json", import.meta.url), "utf8"));
+
+  assert.equal(audit.schemaVersion, 4);
+  assert.equal(audit.signaturePolicy, "Keep an exact ELF symbol when present. Otherwise accept only a unique match of the full demangled C++ signature and publish the symbol name that actually exists in the target ELF. Do not guess from function names or emit byte patterns for unresolved functions.");
+  assert.deepEqual(audit.catalogClassification, {
+    entries: 62389,
+    elfSymbols: 62389,
+    bytePatterns: 0,
+    linuxX86Entries: 0,
+  });
+  assert.deepEqual(audit.target, {
+    platform: "Linux x64",
+    binaryBuild: "Pterodactyl server backup dated 2026-08-21",
+  });
+  assert.equal(audit.source.revision, "58952eecd98538861cd9b7c7a19cc6bd1380a1bf");
+  assert.equal(audit.resolution.exactElfSymbols, 62307);
+  assert.equal(audit.resolution.fullDemangledNameMatches, 82);
+  assert.equal(audit.resolution.unresolvedSourceEntries, 486);
+  assert.equal(audit.binaries.engine.sourceEntries, 7728);
+  assert.equal(audit.binaries.engine.resolvedExactSymbols, 7726);
+  assert.equal(audit.binaries.engine.resolvedByFullDemangledName, 0);
+  assert.equal(audit.binaries.engine.unresolvedEntries, 2);
+  assert.equal(audit.binaries.engine.writtenSignatures, 7726);
+  assert.equal(audit.binaries.engine.machine, "EM_X86_64");
+  assert.equal(audit.binaries.engine.hasStaticSymbolTable, true);
+  assert.equal(audit.binaries.engine.sha256, "96254d754c3bc56d66e0d0d1a188b37e167f15d19386575d300463906e2eccb3");
+  assert.equal(audit.binaries.server.sourceEntries, 55147);
+  assert.equal(audit.binaries.server.resolvedExactSymbols, 54581);
+  assert.equal(audit.binaries.server.resolvedByFullDemangledName, 82);
+  assert.equal(audit.binaries.server.unresolvedEntries, 484);
+  assert.equal(audit.binaries.server.writtenSignatures, 54663);
+  assert.equal(audit.binaries.server.machine, "EM_X86_64");
+  assert.equal(audit.binaries.server.hasStaticSymbolTable, true);
+  assert.equal(audit.binaries.server.sha256, "f70ea14df49afaaff6a2a53640c86b81c48367d0e21939b02091835335373b1c");
+  assert.equal(unresolved.entries.length, 486);
+  assert.equal(unresolved.sourceRevision, audit.source.revision);
+  assert.equal(unresolved.binaryBuild, audit.target.binaryBuild);
+});
+
+test("documents how much of the shared TF2 and Classified signature catalog differs", () => {
+  const { tf2, tf2c } = buildCatalogFromDisk().games;
+  const classifiedByKey = new Map(tf2c.entries.map((entry) => [`${entry.library}|${entry.name}`, entry]));
+  const shared = tf2.entries.flatMap((entry) => {
+    const classified = classifiedByKey.get(`${entry.library}|${entry.name}`);
+    return classified ? [[entry, classified]] : [];
+  });
+  const different = shared.filter(([base, classified]) => base.linux64?.value !== classified.linux64?.value);
+
+  assert.equal(shared.length, 54716);
+  assert.equal(different.length, 510);
+  assert.ok(different.some(([base, classified]) => base.name === "non-virtual thunk to CAI_BaseActor::UseSemaphore()"
+    && base.linux64.value !== classified.linux64.value));
 });
 
 test("publishes a small game manifest that points to per-game data files", () => {
@@ -172,9 +246,28 @@ test("publishes a small game manifest that points to per-game data files", () =>
   assert.equal(manifest.games.tf2.dataFile, "tf2.json");
   assert.equal(manifest.games.tf2c.dataFile, "tf2c.json");
   assert.equal(manifest.games.tf2.stats.entries, 61569);
-  assert.equal(manifest.games.tf2c.stats.entries, 9369);
+  assert.equal(manifest.games.tf2c.stats.entries, 62389);
   assert.ok(!("entries" in manifest.games.tf2));
   assert.ok(!("entries" in manifest.games.tf2c));
+});
+
+test("uses the same total, engine, and server metrics on both game cards", () => {
+  const markup = fs.readFileSync(new URL("../site/index.html", import.meta.url), "utf8");
+
+  for (const metric of ["total", "engine", "server"]) {
+    assert.match(markup, new RegExp(`id="tf2-${metric}"`));
+    assert.match(markup, new RegExp(`id="tf2c-${metric}"`));
+  }
+  assert.doesNotMatch(markup, /id="tf2c-(?:symbols|patterns)"/);
+});
+
+test("keeps the engine library filter available for Classified", () => {
+  const markup = fs.readFileSync(new URL("../site/index.html", import.meta.url), "utf8");
+  const app = fs.readFileSync(new URL("../site/app.js", import.meta.url), "utf8");
+
+  assert.match(markup, /<option value="engine">engine<\/option>/);
+  assert.doesNotMatch(app, /#source option\[value="engine"\]\.hidden/);
+  assert.doesNotMatch(app, /filters\.source === "engine"/);
 });
 
 test("normalizes the selected game and safely defaults unknown values to TF2", () => {
@@ -222,6 +315,13 @@ test("formats architecture labels and source links for result cards", () => {
     sourceHref({ sourceFile: "tf2-function-signatures.game.engine.txt", sourceLine: 63 }),
     "https://github.com/MrPanica/TF2-Gamedata/blob/main/tf2-function-signatures.game.engine.txt#L63",
   );
+});
+
+test("keeps the module offset, source line, and source link on one compact footer row", () => {
+  const styles = fs.readFileSync(new URL("../site/styles.css", import.meta.url), "utf8");
+
+  assert.match(styles, /\.signature-details\s*\{[^}]*flex-wrap:\s*nowrap/);
+  assert.match(styles, /\.source-line\s*\{[^}]*white-space:\s*nowrap/);
 });
 
 test("normalizes and resolves the saved theme preference", () => {

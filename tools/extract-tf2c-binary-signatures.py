@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Export usable TF2 Classified Linux ELF symbols as SourceMod GameData."""
+"""Verify TF2 Classified Linux x64 GameData symbols against ELF binaries."""
 
 from __future__ import annotations
 
@@ -10,77 +10,113 @@ import re
 from dataclasses import dataclass
 from pathlib import Path
 
-import cxxfilt
-from capstone import CS_ARCH_X86, CS_GRP_JUMP, CS_MODE_32, CS_MODE_64, Cs
-from capstone.x86_const import X86_INS_CALL, X86_INS_JMP, X86_OP_MEM, X86_REG_EIP, X86_REG_RIP
+from itanium_demangler import parse as parse_itanium_symbol
 from elftools.elf.elffile import ELFFile
-
-PATTERN_LENGTHS = (24,)
-MIN_FIXED_BYTES = 16
-JUNK_SYMBOL = re.compile(r"(?:\.cold(?:\.|$)|\.isra\.\d+|\.constprop\.\d+|\.clone\.\d+|thunk|@plt)", re.I)
 
 
 @dataclass(frozen=True)
 class Function:
     name: str
-    readable: str
     address: int
     size: int
     file_offset: int
     exported: bool
 
 
+@dataclass(frozen=True)
+class GameDataEntry:
+    name: str
+    library: str
+    symbol: str
+    source_file: str
+    source_line: int
+
+
 def args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--index", required=True, type=Path)
+    parser.add_argument("--engine-gamedata", required=True, type=Path)
+    parser.add_argument("--server-gamedata", required=True, type=Path)
+    parser.add_argument("--supplemental-gamedata", action="append", default=[], type=Path)
     parser.add_argument("--engine", required=True, type=Path)
     parser.add_argument("--server", required=True, type=Path)
-    parser.add_argument("--engine-reference", type=Path)
-    parser.add_argument("--server-reference", type=Path)
+    parser.add_argument("--source-revision", required=True)
+    parser.add_argument("--binary-build", required=True)
     parser.add_argument("--output-dir", required=True, type=Path)
     return parser.parse_args()
 
 
-def demangle(name: str) -> str:
-    try:
-        return cxxfilt.demangle(name, external_only=False)
-    except (cxxfilt.InvalidName, ValueError, TypeError):
-        return name
+def unescape_key(value: str) -> str:
+    return value.replace('\\"', '"').replace("\\\\", "\\")
 
 
-def normalize_name(name: str) -> str:
-    return re.sub(r"\s+", " ", name.split(" [", 1)[0].strip())
+def parse_gamedata_text(text: str, source_file: str = "<memory>") -> list[GameDataEntry]:
+    if text.startswith("\ufeff"):
+        raise ValueError("Unexpected UTF-8 BOM in Classified GameData")
+
+    entries: list[GameDataEntry] = []
+    current: dict[str, str | int] | None = None
+
+    def flush() -> None:
+        if current is None:
+            return
+        library = str(current.get("library", ""))
+        value = str(current.get("linux64", ""))
+        if not library or not value:
+            return
+        if not value.startswith("@"):
+            raise ValueError(
+                f"{source_file}:{current['source_line']}: expected an ELF symbol "
+                "for Classified Linux x64 extraction"
+            )
+        entries.append(GameDataEntry(
+            name=str(current["name"]),
+            library=library,
+            symbol=value[1:],
+            source_file=source_file,
+            source_line=int(current["source_line"]),
+        ))
+
+    for line_number, line in enumerate(text.splitlines(), start=1):
+        name_match = re.match(r'^(?: {12,}|\t{3,})"((?:\\.|[^"])*)"\s*$', line)
+        if name_match:
+            flush()
+            current = {"name": unescape_key(name_match.group(1)), "source_line": line_number}
+            continue
+        if current is None:
+            continue
+        key_value = re.match(r'^\s*"(library|linux64)"\s+"((?:\\.|[^"])*)"\s*$', line)
+        if key_value:
+            key, value = key_value.groups()
+            current[key] = unescape_key(value)
+
+    flush()
+    return entries
 
 
-def function_stem(name: str) -> str:
-    return normalize_name(name).split("(", 1)[0]
+def read_gamedata(path: Path) -> tuple[list[GameDataEntry], dict]:
+    raw = path.read_bytes()
+    entries = parse_gamedata_text(raw.decode("utf-8", errors="strict"), path.name)
+    return entries, {"file": path.name, "sha256": hashlib.sha256(raw).hexdigest(), "entries": len(entries)}
 
 
-def read_elf(path: Path, include_static: bool = True) -> tuple[bytes, dict, list[bytes], int, dict]:
+def read_elf(path: Path) -> tuple[bytes, dict[str, list[Function]], dict]:
     data = path.read_bytes()
-    functions: dict[str, Function] = {}
-    executable: list[bytes] = []
-    relocations: list[tuple[int, int]] = []
+    functions: dict[str, list[Function]] = {}
+    has_symbol_table = False
     with path.open("rb") as handle:
         elf = ELFFile(handle)
-        if elf.elfclass not in (32, 64) or elf["e_machine"] not in ("EM_386", "EM_X86_64"):
-            raise ValueError(f"Unsupported ELF architecture: {path}")
-        if elf.elfclass != 64:
-            raise ValueError(f"Only Linux x64 ELF binaries found in the supplied Classified archive: {path}")
+        if elf.elfclass != 64 or elf["e_machine"] != "EM_X86_64":
+            raise ValueError(f"Expected a Linux x64 ELF binary: {path}")
         sections = list(elf.iter_sections())
-        executable_sections = [section for section in sections if int(section["sh_flags"]) & 0x4 and int(section["sh_size"])]
-        executable = [data[int(section["sh_offset"]):int(section["sh_offset"]) + int(section["sh_size"])] for section in executable_sections]
-
-        for section in elf.iter_sections():
+        for section in sections:
             if section["sh_type"] not in ("SHT_DYNSYM", "SHT_SYMTAB"):
                 continue
-            if not include_static and section["sh_type"] != "SHT_DYNSYM":
-                continue
+            has_symbol_table |= section["sh_type"] == "SHT_SYMTAB"
             for symbol in section.iter_symbols():
                 if symbol["st_info"]["type"] != "STT_FUNC" or not symbol.name:
                     continue
                 section_index = symbol["st_shndx"]
-                if isinstance(section_index, str) or int(symbol["st_value"]) == 0:
+                if isinstance(section_index, str):
                     continue
                 target = elf.get_section(int(section_index))
                 if target is None or not (int(target["sh_flags"]) & 0x4):
@@ -88,143 +124,124 @@ def read_elf(path: Path, include_static: bool = True) -> tuple[bytes, dict, list
                 address = int(symbol["st_value"])
                 target_start = int(target["sh_addr"])
                 target_end = target_start + int(target["sh_size"])
+                if address == 0 or not (target_start <= address < target_end):
+                    continue
                 file_offset = int(target["sh_offset"]) + address - target_start
-                if not (target_start <= address < target_end) or file_offset >= len(data):
+                if file_offset >= len(data):
                     continue
                 exported = (
                     section["sh_type"] == "SHT_DYNSYM"
-                    and symbol["st_shndx"] != "SHN_UNDEF"
                     and symbol["st_info"]["bind"] in ("STB_GLOBAL", "STB_WEAK", "STB_GNU_UNIQUE")
                     and symbol["st_other"]["visibility"] in ("STV_DEFAULT", "STV_PROTECTED")
                 )
-                previous = functions.get(symbol.name)
-                candidate = Function(symbol.name, demangle(symbol.name), address, int(symbol["st_size"]), file_offset, exported)
-                if previous is None or (candidate.exported and not previous.exported) or candidate.size > previous.size:
-                    functions[symbol.name] = candidate
+                candidate = Function(symbol.name, address, int(symbol["st_size"]), file_offset, exported)
+                matches = functions.setdefault(symbol.name, [])
+                same_address = next((index for index, item in enumerate(matches) if item.address == address), None)
+                if same_address is None:
+                    matches.append(candidate)
+                elif candidate.exported or candidate.size > matches[same_address].size:
+                    matches[same_address] = candidate
 
-        if include_static:
-            for section in sections:
-                if section["sh_type"] not in ("SHT_REL", "SHT_RELA"):
-                    continue
-                target = elf.get_section(int(section["sh_info"]))
-                if target is None or not (int(target["sh_flags"]) & 0x4):
-                    continue
-                for relocation in section.iter_relocations():
-                    reloc_type = int(relocation["r_info_type"])
-                    width = 8 if reloc_type in (1, 8, 17, 18, 23, 24) else 4
-                    relocations.append((int(relocation["r_offset"]), width))
+    symbol_count = sum(len(matches) for matches in functions.values())
+    metadata = {
+        "file": path.name,
+        "sha256": hashlib.sha256(data).hexdigest(),
+        "elfClass": 64,
+        "machine": "EM_X86_64",
+        "hasStaticSymbolTable": has_symbol_table,
+        "functionSymbols": symbol_count,
+        "uniqueSymbolNames": len(functions),
+        "exportedFunctions": sum(any(item.exported for item in matches) for matches in functions.values()),
+        "ambiguousSymbolNames": sum(len({item.address for item in matches}) > 1 for matches in functions.values()),
+    }
+    return data, functions, metadata
 
-        metadata = {
-            "file": path.name,
-            "sha256": hashlib.sha256(data).hexdigest(),
-            "elfClass": elf.elfclass,
-            "machine": elf["e_machine"],
-            "functionSymbols": len(functions),
-            "exportedFunctions": sum(function.exported for function in functions.values()),
-        }
-    return data, functions, executable, 64, {"relocations": relocations, "sections": executable_sections}
+
+def demangle_symbol(symbol: str) -> str | None:
+    try:
+        result = parse_itanium_symbol(symbol)
+    except (ValueError, TypeError, RecursionError, NotImplementedError):
+        return None
+    return str(result) if result else None
+
+
+def normalize_demangled_name(name: str) -> str:
+    return re.sub(r"\s+", " ", name).strip()
+
+
+def best_function(functions: list[Function]) -> Function:
+    return sorted(functions, key=lambda item: (not item.exported, -item.size, item.name))[0]
+
+
+def build_demangled_index(functions: dict[str, list[Function]]) -> dict[str, dict[int, list[Function]]]:
+    index: dict[str, dict[int, list[Function]]] = {}
+    for candidates in functions.values():
+        for function in candidates:
+            readable = demangle_symbol(function.name)
+            if readable is None:
+                continue
+            by_address = index.setdefault(normalize_demangled_name(readable), {})
+            by_address.setdefault(function.address, []).append(function)
+    return index
+
+
+def resolve_demangled_function(
+    demangled_name: str,
+    index: dict[str, dict[int, list[Function]]],
+) -> Function | None:
+    candidates = index.get(normalize_demangled_name(demangled_name), {})
+    if len(candidates) != 1:
+        return None
+    return best_function(next(iter(candidates.values())))
+
+
+def resolve_function(
+    entry: GameDataEntry,
+    functions: dict[str, list[Function]],
+    demangled_index: dict[str, dict[int, list[Function]]],
+) -> tuple[Function | None, str]:
+    exact = functions.get(entry.symbol, [])
+    if exact:
+        if len({function.address for function in exact}) != 1:
+            return None, "ambiguous-symbol"
+        return best_function(exact), "exact-symbol"
+
+    readable = demangle_symbol(entry.symbol)
+    if readable is None:
+        return None, "unreadable-source-symbol"
+    resolved = resolve_demangled_function(readable, demangled_index)
+    if resolved is None:
+        return None, "no-unique-full-signature-match"
+    return resolved, "demangled-symbol"
+
+
+def symbol_signature(function: Function | None) -> str | None:
+    return f"@{function.name}" if function is not None else None
 
 
 def escape_key(value: str) -> str:
     return value.replace("\\", "\\\\").replace('"', '\\"').replace("\n", " ")
 
 
-def make_mask(code: bytes, address: int, elf_class: int, relocations: list[tuple[int, int]]) -> list[bool]:
-    mask = [True] * len(code)
-    disassembler = Cs(CS_ARCH_X86, CS_MODE_64 if elf_class == 64 else CS_MODE_32)
-    disassembler.detail = True
-    for instruction in disassembler.disasm(code, address):
-        start = instruction.address - address
-        if start >= len(mask):
-            break
-        if instruction.id in (X86_INS_CALL, X86_INS_JMP) or instruction.group(CS_GRP_JUMP):
-            for index in range(instruction.imm_offset, instruction.imm_offset + instruction.imm_size):
-                if 0 <= start + index < len(mask):
-                    mask[start + index] = False
-        for operand in instruction.operands:
-            if operand.type == X86_OP_MEM and operand.mem.base in (X86_REG_RIP, X86_REG_EIP, 0):
-                for index in range(instruction.disp_offset, instruction.disp_offset + instruction.disp_size):
-                    if 0 <= start + index < len(mask):
-                        mask[start + index] = False
-    for offset, width in relocations:
-        start = offset - address
-        for index in range(start, start + width):
-            if 0 <= index < len(mask):
-                mask[index] = False
-    return mask
-
-
-def count_matches(sections: list[bytes], code: bytes, mask: list[bool]) -> int:
-    best_start = best_length = run_start = run_length = 0
-    for index, fixed in enumerate(mask):
-        if fixed:
-            if not run_length:
-                run_start = index
-            run_length += 1
-            if run_length > best_length:
-                best_start, best_length = run_start, run_length
-        else:
-            run_length = 0
-    if best_length < 8:
-        return 0
-    needle = code[best_start:best_start + best_length]
-    matches = 0
-    for section in sections:
-        cursor = section.find(needle)
-        while cursor >= 0:
-            start = cursor - best_start
-            if start >= 0 and start + len(code) <= len(section) and all(
-                not fixed or section[start + index] == code[index]
-                for index, fixed in enumerate(mask)
-            ):
-                matches += 1
-                if matches > 1:
-                    return matches
-            cursor = section.find(needle, cursor + 1)
-    return matches
-
-
-def byte_pattern(data: bytes, function: Function, sections: list[bytes], relocations: list[tuple[int, int]]) -> tuple[str, int] | None:
-    if function.size < PATTERN_LENGTHS[0] or JUNK_SYMBOL.search(function.name):
-        return None
-    available = min(function.size, PATTERN_LENGTHS[-1], len(data) - function.file_offset)
-    code = data[function.file_offset:function.file_offset + available]
-    mask = make_mask(code, function.address, 64, relocations)
-    # SourceMod uses \x2A as its wildcard token, so a literal 0x2A cannot
-    # remain fixed in the emitted pattern and must be treated as a wildcard
-    # during the uniqueness check as well.
-    mask = [keep and byte != 0x2A for byte, keep in zip(code, mask)]
-    for length in PATTERN_LENGTHS:
-        if length > available:
-            break
-        fixed = sum(mask[:length])
-        if fixed < MIN_FIXED_BYTES:
-            continue
-        candidate = code[:length]
-        candidate_mask = mask[:length]
-        if count_matches(sections, candidate, candidate_mask) != 1:
-            continue
-        value = "".join(f"\\x{byte:02X}" if keep else "\\x2A" for byte, keep in zip(candidate, candidate_mask))
-        return value, fixed
-    return None
-
-
-def write_gamedata(path: Path, library: str, records: list[tuple[str, str]], excluded: set[str]) -> int:
+def write_gamedata(path: Path, library: str, records: list[tuple[str, str]]) -> int:
+    names: set[str] = set()
     rows = []
-    seen_values: set[str] = set()
-    used_names: set[str] = set()
-    for name, value in sorted(records, key=lambda item: (item[0].casefold(), item[1])):
-        if value in excluded or value in seen_values:
-            continue
-        if name in used_names:
-            identity = hashlib.sha256(value.encode("utf-8")).hexdigest()[:10]
-            name = f"{name} [signature {identity}]"
-        used_names.add(name)
-        seen_values.add(value)
-        rows.extend((f'\t\t\t"{escape_key(name)}"', "\t\t\t{", f'\t\t\t\t"library"\t"{library}"', f'\t\t\t\t"linux64"\t"{value}"', "\t\t\t}"))
+    for name, value in sorted(records, key=lambda item: (item[0].casefold(), item[0], item[1])):
+        if name in names:
+            raise ValueError(f"Duplicate GameData name in {library}: {name}")
+        names.add(name)
+        rows.extend((
+            f'\t\t\t"{escape_key(name)}"',
+            "\t\t\t{",
+            f'\t\t\t\t"library"\t"{library}"',
+            f'\t\t\t\t"linux64"\t"{value}"',
+            "\t\t\t}",
+        ))
 
     text = "\n".join((
-        f"\t/* Exported ELF symbols from Classified {library} binary; SHA-256 in audit JSON. */",
+        "/* Verified TF2 Classified Linux x64 ELF symbols; see the audit JSON for source and binary hashes. */",
+        '"Games"',
+        "{",
         '\t"tf2classified"',
         "\t{",
         '\t\t"Signatures"',
@@ -232,121 +249,155 @@ def write_gamedata(path: Path, library: str, records: list[tuple[str, str]], exc
         *rows,
         "\t\t}",
         "\t}",
+        "}",
         "",
     ))
     path.write_text(text, encoding="utf-8", newline="\n")
-    return len(seen_values)
+    return len(records)
+
+
+def extract_library(
+    library: str,
+    sources: list[Path],
+    binary: Path,
+    output_dir: Path,
+) -> tuple[dict, list[dict], list[dict]]:
+    entries: list[GameDataEntry] = []
+    source_metadata = []
+    for source in sources:
+        parsed, metadata = read_gamedata(source)
+        wrong_libraries = sorted({entry.library for entry in parsed if entry.library != library})
+        if wrong_libraries:
+            raise ValueError(f"{source} contains unexpected libraries: {', '.join(wrong_libraries)}")
+        entries.extend(parsed)
+        source_metadata.append(metadata)
+
+    data, functions, binary_metadata = read_elf(binary)
+    demangled_index = build_demangled_index(functions)
+    records: list[tuple[str, str]] = []
+    unresolved: list[dict] = []
+    remapped: list[dict] = []
+    stats = {
+        "sourceEntries": len(entries),
+        "resolvedExactSymbols": 0,
+        "resolvedByFullDemangledName": 0,
+        "unresolvedEntries": 0,
+        "exportedSymbols": 0,
+        "internalSymbols": 0,
+    }
+    seen_names: set[str] = set()
+    for entry in entries:
+        if entry.name in seen_names:
+            raise ValueError(f"Duplicate GameData name in {entry.source_file}:{entry.source_line}: {entry.name}")
+        seen_names.add(entry.name)
+        function, method = resolve_function(entry, functions, demangled_index)
+        if function is None:
+            stats["unresolvedEntries"] += 1
+            unresolved.append({
+                "name": entry.name,
+                "library": entry.library,
+                "requestedSymbol": entry.symbol,
+                "sourceFile": entry.source_file,
+                "sourceLine": entry.source_line,
+                "reason": method,
+            })
+            continue
+
+        signature = symbol_signature(function)
+        assert signature is not None
+        records.append((entry.name, signature))
+        if method == "exact-symbol":
+            stats["resolvedExactSymbols"] += 1
+        else:
+            stats["resolvedByFullDemangledName"] += 1
+            remapped.append({
+                "name": entry.name,
+                "requestedSymbol": entry.symbol,
+                "resolvedSymbol": function.name,
+                "sourceFile": entry.source_file,
+                "sourceLine": entry.source_line,
+            })
+        if function.exported:
+            stats["exportedSymbols"] += 1
+        else:
+            stats["internalSymbols"] += 1
+
+    output = output_dir / f"tf2c.binary.{library}.txt"
+    stats["writtenSignatures"] = write_gamedata(output, library, records)
+    binary_metadata.update(stats)
+    binary_metadata["sourceGameData"] = source_metadata
+    return binary_metadata, unresolved, remapped
 
 
 def main() -> None:
     options = args()
-    index = json.loads(options.index.read_text(encoding="utf-8"))
-    existing = {
-        (entry["library"], signature["value"])
-        for entry in index["entries"]
-        if entry.get("game") == "tf2c"
-        for platform in ("linux", "linux64")
-        if (signature := entry.get(platform)) is not None
-    }
     options.output_dir.mkdir(parents=True, exist_ok=True)
-    metadata = {}
-    totals = {}
-    source_entries = [entry for entry in index["entries"] if entry.get("game") == "tf2"]
-    references = {}
-    for library, path in (("engine", options.engine_reference), ("server", options.server_reference)):
-        if path is None:
-            continue
-        ref_data, ref_functions, ref_sections, _, ref_aux = read_elf(path, include_static=False)
-        references[library] = (ref_data, ref_functions, ref_sections, ref_aux)
-        metadata[f"{library}Reference"] = {"file": path.name, "sha256": hashlib.sha256(ref_data).hexdigest()}
+    supplemental = options.supplemental_gamedata
+    binaries = {}
+    unresolved = []
+    remapped = []
+    for library, sources, binary in (
+        ("engine", [options.engine_gamedata], options.engine),
+        ("server", [options.server_gamedata, *supplemental], options.server),
+    ):
+        metadata, missing, alternate_names = extract_library(library, sources, binary, options.output_dir)
+        binaries[library] = metadata
+        unresolved.extend(missing)
+        remapped.extend(alternate_names)
 
-    for library, binary in (("engine", options.engine), ("server", options.server)):
-        data, functions, executable, elf_class, aux = read_elf(binary)
-        metadata[library] = {"file": binary.name, "sha256": hashlib.sha256(data).hexdigest(), "elfClass": elf_class, "machine": "EM_X86_64", "functionSymbols": len(functions)}
-        records = []
-        exported = {name: function for name, function in functions.items() if function.exported}
-        reference_symbols = references[library][1] if library in references else None
-        for name, function in exported.items():
-            if reference_symbols is not None and name not in reference_symbols:
-                continue
-            records.append((function.readable or name, f"@{name}"))
+    total = sum(binary["writtenSignatures"] for binary in binaries.values())
+    unresolved_path = options.output_dir / "artifacts" / "tf2c-unresolved-signatures.json"
+    unresolved_path.parent.mkdir(parents=True, exist_ok=True)
+    unresolved_path.write_text(
+        json.dumps({
+            "schemaVersion": 1,
+            "game": "Team Fortress 2 Classified",
+            "platform": "Linux x64",
+            "sourceRevision": options.source_revision,
+            "binaryBuild": options.binary_build,
+            "entries": unresolved,
+        }, ensure_ascii=False, indent=2) + "\n",
+        encoding="utf-8",
+        newline="\n",
+    )
 
-        symbol_values = {value for record_name, value in records}
-        existing_names = {entry["name"] for entry in index["entries"] if entry.get("game") == "tf2c" and entry.get("library") == library}
-        anchors = {entry["name"]: entry for entry in source_entries if entry.get("library") == library}
-        by_demangled: dict[str, list[Function]] = {}
-        by_stem: dict[str, list[Function]] = {}
-        for function in functions.values():
-            by_demangled.setdefault(normalize_name(function.readable), []).append(function)
-            by_stem.setdefault(function_stem(function.readable), []).append(function)
-        # Deduplicate aliases when resolving a readable GameData name.
-        by_demangled = {key: list({item.address: item for item in values}.values()) for key, values in by_demangled.items()}
-        by_stem = {key: list({item.address: item for item in values}.values()) for key, values in by_stem.items()}
-        pattern_stats = {"anchors": 0, "symbolMatches": 0, "patterns": 0, "missing": 0, "ambiguous": 0, "notUnique": 0, "incompatibleReference": 0}
-        for name, entry in anchors.items():
-            if name in existing_names:
-                continue
-            pattern_stats["anchors"] += 1
-            if pattern_stats["anchors"] % 1000 == 0:
-                print(f"{library}: checked {pattern_stats['anchors']} GameData names; {pattern_stats['patterns']} byte-patterns", flush=True)
-            candidates = []
-            for platform in ("linux64", "linux"):
-                signature = entry.get(platform)
-                if signature and signature.get("kind") == "symbol" and signature["value"].startswith("@"):
-                    function = functions.get(signature["value"][1:])
-                    if function:
-                        candidates.append(function)
-            if not candidates:
-                readable_names = [normalize_name(entry["name"])]
-                readable_names.extend(
-                    normalize_name(demangle(signature["value"][1:]))
-                    for platform in ("linux64", "linux")
-                    if (signature := entry.get(platform)) and signature.get("kind") == "symbol" and signature["value"].startswith("@")
-                )
-                for readable in readable_names:
-                    exact = by_demangled.get(readable, [])
-                    if exact:
-                        candidates = exact
-                        break
-                    stem = by_stem.get(function_stem(readable), [])
-                    if len(stem) == 1:
-                        candidates = stem
-                        break
-                    if len(stem) > 1:
-                        candidates = stem
-                        break
-            candidates = list({(item.name, item.address): item for item in candidates}.values())
-            if len(candidates) != 1:
-                pattern_stats["ambiguous" if candidates else "missing"] += 1
-                continue
-            function = candidates[0]
-            if function.exported:
-                pattern_stats["symbolMatches"] += 1
-                continue
-            found = byte_pattern(data, function, executable, aux["relocations"])
-            if found is None:
-                pattern_stats["notUnique"] += 1
-                continue
-            value, fixed_bytes = found
-            if library in references:
-                parsed = bytes(int(part, 16) for part in re.findall(r"\\x([0-9A-F]{2})", value))
-                mask = [part != "2A" for part in re.findall(r"\\x([0-9A-F]{2})", value)]
-                if count_matches(references[library][2], parsed, mask) != 1:
-                    pattern_stats["incompatibleReference"] += 1
-                    continue
-            if value not in symbol_values and (library, value) not in existing:
-                records.append((name, value))
-                symbol_values.add(value)
-                pattern_stats["patterns"] += 1
-
-        output = options.output_dir / f"tf2c.binary.{library}.txt"
-        totals[library] = write_gamedata(output, library, records, {value for owner, value in existing if owner == library})
-        metadata[library].update({"exportedFunctions": len(exported), "writtenSignatures": totals[library], "sourceGameDataMatches": pattern_stats})
-
-    report = {"schemaVersion": 1, "source": "TF2 Classified ELF symbols and byte-patterns mapped from TF2 GameData", "binaries": metadata, "writtenSignatures": totals}
-    report_path = options.output_dir / "tf2c-binary-signatures-audit.json"
+    report = {
+        "schemaVersion": 4,
+        "game": "Team Fortress 2 Classified",
+        "target": {"platform": "Linux x64", "binaryBuild": options.binary_build},
+        "source": {
+            "repository": "https://github.com/MrPanica/TF2C-Gamedata",
+            "revision": options.source_revision,
+        },
+        "signaturePolicy": (
+            "Keep an exact ELF symbol when present. Otherwise accept only a unique match of the full "
+            "demangled C++ signature and publish the symbol name that actually exists in the target ELF. "
+            "Do not guess from function names or emit byte patterns for unresolved functions."
+        ),
+        "catalogClassification": {
+            "entries": total,
+            "elfSymbols": total,
+            "bytePatterns": 0,
+            "linuxX86Entries": 0,
+        },
+        "resolution": {
+            "exactElfSymbols": sum(binary["resolvedExactSymbols"] for binary in binaries.values()),
+            "fullDemangledNameMatches": sum(binary["resolvedByFullDemangledName"] for binary in binaries.values()),
+            "unresolvedSourceEntries": len(unresolved),
+            "alternateElfSymbols": remapped,
+            "unresolvedReport": "tf2c-unresolved-signatures.json",
+        },
+        "binaries": binaries,
+    }
+    report_path = options.output_dir / "artifacts" / "tf2c-binary-signatures-audit.json"
     report_path.write_text(json.dumps(report, ensure_ascii=False, indent=2) + "\n", encoding="utf-8", newline="\n")
-    print(json.dumps({"writtenSignatures": totals, "audit": str(report_path)}, ensure_ascii=False))
+    print(json.dumps({
+        "catalogEntries": total,
+        "exactElfSymbols": report["resolution"]["exactElfSymbols"],
+        "fullDemangledNameMatches": report["resolution"]["fullDemangledNameMatches"],
+        "unresolvedSourceEntries": len(unresolved),
+        "audit": str(report_path),
+    }, ensure_ascii=False))
 
 
 if __name__ == "__main__":

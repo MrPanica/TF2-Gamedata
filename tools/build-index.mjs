@@ -8,8 +8,6 @@ const SOURCE_FILES = [
   "tf2-function-signatures.game.server.txt",
 ];
 const TF2C_SOURCE_FILES = [
-  "tf2c-function-signatures.game.server.txt",
-  "tf2c.sdktools.games.txt",
   "tf2c.binary.engine.txt",
   "tf2c.binary.server.txt",
 ];

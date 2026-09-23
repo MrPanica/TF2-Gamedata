@@ -23,9 +23,8 @@ const translations = {
     entriesLabel: "записей",
     signatureCount: "сигнатур",
     symbolCount: "ELF symbols",
-    bytePatternCount: "byte-pattern",
     classifiedStamp: "Только Linux x64",
-    classifiedDescription: "Сигнатуры Team Fortress 2 Classified.",
+    classifiedDescription: "ELF-символы Linux x64 сверены с бинарниками сборки.",
     classifiedOnlyX64: "Для Classified доступны только сигнатуры Linux x64.",
     catalogAria: "Список сигнатур",
     catalogTitle: "Список сигнатур",
@@ -89,9 +88,8 @@ const translations = {
     entriesLabel: "entries",
     signatureCount: "signatures",
     symbolCount: "ELF symbols",
-    bytePatternCount: "byte-patterns",
     classifiedStamp: "Linux x64 only",
-    classifiedDescription: "Team Fortress 2 Classified signatures.",
+    classifiedDescription: "Linux x64 ELF symbols checked against the reference binaries.",
     classifiedOnlyX64: "Classified signatures are available for Linux x64 only.",
     catalogAria: "Signature list",
     catalogTitle: "Signature list",
@@ -371,14 +369,13 @@ function renderGameCards(games, selectedGame) {
   const tf2 = games.tf2.stats;
   const tf2c = games.tf2c.stats;
   const tf2Libraries = tf2.byLibrary ?? {};
-  const tf2cSymbols = tf2c.platforms.linux64.symbol;
-  const tf2cPatterns = tf2c.platforms.linux64["byte-pattern"];
+  const tf2cLibraries = tf2c.byLibrary ?? {};
   document.querySelector("#tf2-total").textContent = formatNumber(tf2.entries);
   document.querySelector("#tf2-engine").textContent = formatNumber(tf2Libraries.engine ?? 0);
   document.querySelector("#tf2-server").textContent = formatNumber(tf2Libraries.server ?? 0);
   document.querySelector("#tf2c-total").textContent = formatNumber(tf2c.entries);
-  document.querySelector("#tf2c-symbols").textContent = formatNumber(tf2cSymbols);
-  document.querySelector("#tf2c-patterns").textContent = formatNumber(tf2cPatterns);
+  document.querySelector("#tf2c-engine").textContent = formatNumber(tf2cLibraries.engine ?? 0);
+  document.querySelector("#tf2c-server").textContent = formatNumber(tf2cLibraries.server ?? 0);
 }
 
 function renderSummary(index, selectedGame) {
@@ -526,9 +523,7 @@ function init() {
   const filters = readFilters();
   if (selectedGame === "tf2c") {
     document.querySelectorAll('[data-game-filter="tf2"]').forEach((option) => { option.hidden = true; });
-    document.querySelector('#source option[value="engine"]').hidden = true;
     if (["linux", "both", "missing"].includes(filters.arch)) filters.arch = "all";
-    if (filters.source === "engine") filters.source = "all";
   }
   queryInput.value = filters.query;
   sourceInput.value = filters.source;

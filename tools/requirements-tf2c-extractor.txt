@@ -1,3 +1,2 @@
-pyelftools
-capstone
-cxxfilt
+pyelftools==0.33
+itanium_demangler==1.1

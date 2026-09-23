@@ -1,54 +1,663 @@
 {
-  "schemaVersion": 1,
-  "source": "TF2 Classified ELF symbols and byte-patterns mapped from TF2 GameData",
+  "schemaVersion": 4,
+  "game": "Team Fortress 2 Classified",
+  "target": {
+    "platform": "Linux x64",
+    "binaryBuild": "Pterodactyl server backup dated 2026-08-21"
+  },
+  "source": {
+    "repository": "https://github.com/MrPanica/TF2C-Gamedata",
+    "revision": "58952eecd98538861cd9b7c7a19cc6bd1380a1bf"
+  },
+  "signaturePolicy": "Keep an exact ELF symbol when present. Otherwise accept only a unique match of the full demangled C++ signature and publish the symbol name that actually exists in the target ELF. Do not guess from function names or emit byte patterns for unresolved functions.",
+  "catalogClassification": {
+    "entries": 62389,
+    "elfSymbols": 62389,
+    "bytePatterns": 0,
+    "linuxX86Entries": 0
+  },
+  "resolution": {
+    "exactElfSymbols": 62307,
+    "fullDemangledNameMatches": 82,
+    "unresolvedSourceEntries": 486,
+    "alternateElfSymbols": [
+      {
+        "name": "non-virtual thunk to CAI_BaseActor::UseSemaphore()",
+        "requestedSymbol": "_ZThn4984_N13CAI_BaseActor12UseSemaphoreEv",
+        "resolvedSymbol": "_ZThn4976_N13CAI_BaseActor12UseSemaphoreEv",
+        "sourceFile": "tf2classified-function-signatures.game.server.txt",
+        "sourceLine": 319699
+      },
+      {
+        "name": "non-virtual thunk to CAI_BasePhysicsFlyingBot::Simulate(IPhysicsMotionController*, IPhysicsObject*, float, Vector&, Vector&)",
+        "requestedSymbol": "_ZThn4928_N24CAI_BasePhysicsFlyingBot8SimulateEP24IPhysicsMotionControllerP14IPhysicsObjectfR6VectorS5_",
+        "resolvedSymbol": "_ZThn4920_N24CAI_BasePhysicsFlyingBot8SimulateEP24IPhysicsMotionControllerP14IPhysicsObjectfR6VectorS5_",
+        "sourceFile": "tf2classified-function-signatures.game.server.txt",
+        "sourceLine": 319729
+      },
+      {
+        "name": "non-virtual thunk to CAI_BehaviorHost<CAI_BaseNPC>::BackBridge_BestEnemy()",
+        "requestedSymbol": "_ZThn4928_N16CAI_BehaviorHostI11CAI_BaseNPCE20BackBridge_BestEnemyEv",
+        "resolvedSymbol": "_ZThn4920_N16CAI_BehaviorHostI11CAI_BaseNPCE20BackBridge_BestEnemyEv",
+        "sourceFile": "tf2classified-function-signatures.game.server.txt",
+        "sourceLine": 319735
+      },
+      {
+        "name": "non-virtual thunk to CAI_BehaviorHost<CAI_BaseNPC>::BackBridge_CanFlinch()",
+        "requestedSymbol": "_ZThn4928_N16CAI_BehaviorHostI11CAI_BaseNPCE20BackBridge_CanFlinchEv",
+        "resolvedSymbol": "_ZThn4920_N16CAI_BehaviorHostI11CAI_BaseNPCE20BackBridge_CanFlinchEv",
+        "sourceFile": "tf2classified-function-signatures.game.server.txt",
+        "sourceLine": 319741
+      },
+      {
+        "name": "non-virtual thunk to CAI_BehaviorHost<CAI_BaseNPC>::BackBridge_CanRunAScriptedNPCInteraction(bool)",
+        "requestedSymbol": "_ZThn4928_N16CAI_BehaviorHostI11CAI_BaseNPCE40BackBridge_CanRunAScriptedNPCInteractionEb",
+        "resolvedSymbol": "_ZThn4920_N16CAI_BehaviorHostI11CAI_BaseNPCE40BackBridge_CanRunAScriptedNPCInteractionEb",
+        "sourceFile": "tf2classified-function-signatures.game.server.txt",
+        "sourceLine": 319747
+      },
+      {
+        "name": "non-virtual thunk to CAI_BehaviorHost<CAI_BaseNPC>::BackBridge_CanTranslateCrouchActivity()",
+        "requestedSymbol": "_ZThn4928_N16CAI_BehaviorHostI11CAI_BaseNPCE37BackBridge_CanTranslateCrouchActivityEv",
+        "resolvedSymbol": "_ZThn4920_N16CAI_BehaviorHostI11CAI_BaseNPCE37BackBridge_CanTranslateCrouchActivityEv",
+        "sourceFile": "tf2classified-function-signatures.game.server.txt",
+        "sourceLine": 319753
+      },
+      {
+        "name": "non-virtual thunk to CAI_BehaviorHost<CAI_BaseNPC>::BackBridge_CanUnholsterWeapon()",
+        "requestedSymbol": "_ZThn4928_N16CAI_BehaviorHostI11CAI_BaseNPCE29BackBridge_CanUnholsterWeaponEv",
+        "resolvedSymbol": "_ZThn4920_N16CAI_BehaviorHostI11CAI_BaseNPCE29BackBridge_CanUnholsterWeaponEv",
+        "sourceFile": "tf2classified-function-signatures.game.server.txt",
+        "sourceLine": 319759
+      },
+      {
+        "name": "non-virtual thunk to CAI_BehaviorHost<CAI_BaseNPC>::BackBridge_GatherConditions()",
+        "requestedSymbol": "_ZThn4928_N16CAI_BehaviorHostI11CAI_BaseNPCE27BackBridge_GatherConditionsEv",
+        "resolvedSymbol": "_ZThn4920_N16CAI_BehaviorHostI11CAI_BaseNPCE27BackBridge_GatherConditionsEv",
+        "sourceFile": "tf2classified-function-signatures.game.server.txt",
+        "sourceLine": 319765
+      },
+      {
+        "name": "non-virtual thunk to CAI_BehaviorHost<CAI_BaseNPC>::BackBridge_GetDefaultNavGoalTolerance()",
+        "requestedSymbol": "_ZThn4928_N16CAI_BehaviorHostI11CAI_BaseNPCE37BackBridge_GetDefaultNavGoalToleranceEv",
+        "resolvedSymbol": "_ZThn4920_N16CAI_BehaviorHostI11CAI_BaseNPCE37BackBridge_GetDefaultNavGoalToleranceEv",
+        "sourceFile": "tf2classified-function-signatures.game.server.txt",
+        "sourceLine": 319771
+      },
+      {
+        "name": "non-virtual thunk to CAI_BehaviorHost<CAI_BaseNPC>::BackBridge_GetFlinchActivity(bool, bool)",
+        "requestedSymbol": "_ZThn4928_N16CAI_BehaviorHostI11CAI_BaseNPCE28BackBridge_GetFlinchActivityEbb",
+        "resolvedSymbol": "_ZThn4920_N16CAI_BehaviorHostI11CAI_BaseNPCE28BackBridge_GetFlinchActivityEbb",
+        "sourceFile": "tf2classified-function-signatures.game.server.txt",
+        "sourceLine": 319777
+      },
+      {
+        "name": "non-virtual thunk to CAI_BehaviorHost<CAI_BaseNPC>::BackBridge_GetMaxTacticalLateralMovement()",
+        "requestedSymbol": "_ZThn4928_N16CAI_BehaviorHostI11CAI_BaseNPCE40BackBridge_GetMaxTacticalLateralMovementEv",
+        "resolvedSymbol": "_ZThn4920_N16CAI_BehaviorHostI11CAI_BaseNPCE40BackBridge_GetMaxTacticalLateralMovementEv",
+        "sourceFile": "tf2classified-function-signatures.game.server.txt",
+        "sourceLine": 319783
+      },
+      {
+        "name": "non-virtual thunk to CAI_BehaviorHost<CAI_BaseNPC>::BackBridge_GetReasonableFacingDist()",
+        "requestedSymbol": "_ZThn4928_N16CAI_BehaviorHostI11CAI_BaseNPCE34BackBridge_GetReasonableFacingDistEv",
+        "resolvedSymbol": "_ZThn4920_N16CAI_BehaviorHostI11CAI_BaseNPCE34BackBridge_GetReasonableFacingDistEv",
+        "sourceFile": "tf2classified-function-signatures.game.server.txt",
+        "sourceLine": 319789
+      },
+      {
+        "name": "non-virtual thunk to CAI_BehaviorHost<CAI_BaseNPC>::BackBridge_HandleAnimEvent(animevent_t*)",
+        "requestedSymbol": "_ZThn4928_N16CAI_BehaviorHostI11CAI_BaseNPCE26BackBridge_HandleAnimEventEP11animevent_t",
+        "resolvedSymbol": "_ZThn4920_N16CAI_BehaviorHostI11CAI_BaseNPCE26BackBridge_HandleAnimEventEP11animevent_t",
+        "sourceFile": "tf2classified-function-signatures.game.server.txt",
+        "sourceLine": 319795
+      },
+      {
+        "name": "non-virtual thunk to CAI_BehaviorHost<CAI_BaseNPC>::BackBridge_IsCrouchedActivity(Activity)",
+        "requestedSymbol": "_ZThn4928_N16CAI_BehaviorHostI11CAI_BaseNPCE29BackBridge_IsCrouchedActivityE8Activity",
+        "resolvedSymbol": "_ZThn4920_N16CAI_BehaviorHostI11CAI_BaseNPCE29BackBridge_IsCrouchedActivityE8Activity",
+        "sourceFile": "tf2classified-function-signatures.game.server.txt",
+        "sourceLine": 319801
+      },
+      {
+        "name": "non-virtual thunk to CAI_BehaviorHost<CAI_BaseNPC>::BackBridge_IsCrouching()",
+        "requestedSymbol": "_ZThn4928_N16CAI_BehaviorHostI11CAI_BaseNPCE22BackBridge_IsCrouchingEv",
+        "resolvedSymbol": "_ZThn4920_N16CAI_BehaviorHostI11CAI_BaseNPCE22BackBridge_IsCrouchingEv",
+        "sourceFile": "tf2classified-function-signatures.game.server.txt",
+        "sourceLine": 319807
+      },
+      {
+        "name": "non-virtual thunk to CAI_BehaviorHost<CAI_BaseNPC>::BackBridge_IsInterruptable()",
+        "requestedSymbol": "_ZThn4928_N16CAI_BehaviorHostI11CAI_BaseNPCE26BackBridge_IsInterruptableEv",
+        "resolvedSymbol": "_ZThn4920_N16CAI_BehaviorHostI11CAI_BaseNPCE26BackBridge_IsInterruptableEv",
+        "sourceFile": "tf2classified-function-signatures.game.server.txt",
+        "sourceLine": 319813
+      },
+      {
+        "name": "non-virtual thunk to CAI_BehaviorHost<CAI_BaseNPC>::BackBridge_IsNavigationUrgent()",
+        "requestedSymbol": "_ZThn4928_N16CAI_BehaviorHostI11CAI_BaseNPCE29BackBridge_IsNavigationUrgentEv",
+        "resolvedSymbol": "_ZThn4920_N16CAI_BehaviorHostI11CAI_BaseNPCE29BackBridge_IsNavigationUrgentEv",
+        "sourceFile": "tf2classified-function-signatures.game.server.txt",
+        "sourceLine": 319819
+      },
+      {
+        "name": "non-virtual thunk to CAI_BehaviorHost<CAI_BaseNPC>::BackBridge_IsValidCover(Vector const&, CAI_Hint const*)",
+        "requestedSymbol": "_ZThn4928_N16CAI_BehaviorHostI11CAI_BaseNPCE23BackBridge_IsValidCoverERK6VectorPK8CAI_Hint",
+        "resolvedSymbol": "_ZThn4920_N16CAI_BehaviorHostI11CAI_BaseNPCE23BackBridge_IsValidCoverERK6VectorPK8CAI_Hint",
+        "sourceFile": "tf2classified-function-signatures.game.server.txt",
+        "sourceLine": 319825
+      },
+      {
+        "name": "non-virtual thunk to CAI_BehaviorHost<CAI_BaseNPC>::BackBridge_IsValidEnemy(CBaseEntity*)",
+        "requestedSymbol": "_ZThn4928_N16CAI_BehaviorHostI11CAI_BaseNPCE23BackBridge_IsValidEnemyEP11CBaseEntity",
+        "resolvedSymbol": "_ZThn4920_N16CAI_BehaviorHostI11CAI_BaseNPCE23BackBridge_IsValidEnemyEP11CBaseEntity",
+        "sourceFile": "tf2classified-function-signatures.game.server.txt",
+        "sourceLine": 319831
+      },
+      {
+        "name": "non-virtual thunk to CAI_BehaviorHost<CAI_BaseNPC>::BackBridge_IsValidShootPosition(Vector const&, CAI_Node*, CAI_Hint const*)",
+        "requestedSymbol": "_ZThn4928_N16CAI_BehaviorHostI11CAI_BaseNPCE31BackBridge_IsValidShootPositionERK6VectorP8CAI_NodePK8CAI_Hint",
+        "resolvedSymbol": "_ZThn4920_N16CAI_BehaviorHostI11CAI_BaseNPCE31BackBridge_IsValidShootPositionERK6VectorP8CAI_NodePK8CAI_Hint",
+        "sourceFile": "tf2classified-function-signatures.game.server.txt",
+        "sourceLine": 319837
+      },
+      {
+        "name": "non-virtual thunk to CAI_BehaviorHost<CAI_BaseNPC>::BackBridge_ModifyOrAppendCriteria(ResponseRules::CriteriaSet&)",
+        "requestedSymbol": "_ZThn4928_N16CAI_BehaviorHostI11CAI_BaseNPCE33BackBridge_ModifyOrAppendCriteriaERN13ResponseRules11CriteriaSetE",
+        "resolvedSymbol": "_ZThn4920_N16CAI_BehaviorHostI11CAI_BaseNPCE33BackBridge_ModifyOrAppendCriteriaERN13ResponseRules11CriteriaSetE",
+        "sourceFile": "tf2classified-function-signatures.game.server.txt",
+        "sourceLine": 319843
+      },
+      {
+        "name": "non-virtual thunk to CAI_BehaviorHost<CAI_BaseNPC>::BackBridge_NPC_TranslateActivity(Activity)",
+        "requestedSymbol": "_ZThn4928_N16CAI_BehaviorHostI11CAI_BaseNPCE32BackBridge_NPC_TranslateActivityE8Activity",
+        "resolvedSymbol": "_ZThn4920_N16CAI_BehaviorHostI11CAI_BaseNPCE32BackBridge_NPC_TranslateActivityE8Activity",
+        "sourceFile": "tf2classified-function-signatures.game.server.txt",
+        "sourceLine": 319849
+      },
+      {
+        "name": "non-virtual thunk to CAI_BehaviorHost<CAI_BaseNPC>::BackBridge_OnCalcBaseMove(AILocalMoveGoal_t*, float, AIMoveResult_t*)",
+        "requestedSymbol": "_ZThn4928_N16CAI_BehaviorHostI11CAI_BaseNPCE25BackBridge_OnCalcBaseMoveEP17AILocalMoveGoal_tfP14AIMoveResult_t",
+        "resolvedSymbol": "_ZThn4920_N16CAI_BehaviorHostI11CAI_BaseNPCE25BackBridge_OnCalcBaseMoveEP17AILocalMoveGoal_tfP14AIMoveResult_t",
+        "sourceFile": "tf2classified-function-signatures.game.server.txt",
+        "sourceLine": 319855
+      },
+      {
+        "name": "non-virtual thunk to CAI_BehaviorHost<CAI_BaseNPC>::BackBridge_OnFriendDamaged(CBaseCombatCharacter*, CBaseEntity*)",
+        "requestedSymbol": "_ZThn4928_N16CAI_BehaviorHostI11CAI_BaseNPCE26BackBridge_OnFriendDamagedEP20CBaseCombatCharacterP11CBaseEntity",
+        "resolvedSymbol": "_ZThn4920_N16CAI_BehaviorHostI11CAI_BaseNPCE26BackBridge_OnFriendDamagedEP20CBaseCombatCharacterP11CBaseEntity",
+        "sourceFile": "tf2classified-function-signatures.game.server.txt",
+        "sourceLine": 319861
+      },
+      {
+        "name": "non-virtual thunk to CAI_BehaviorHost<CAI_BaseNPC>::BackBridge_OnSeeEntity(CBaseEntity*)",
+        "requestedSymbol": "_ZThn4928_N16CAI_BehaviorHostI11CAI_BaseNPCE22BackBridge_OnSeeEntityEP11CBaseEntity",
+        "resolvedSymbol": "_ZThn4920_N16CAI_BehaviorHostI11CAI_BaseNPCE22BackBridge_OnSeeEntityEP11CBaseEntity",
+        "sourceFile": "tf2classified-function-signatures.game.server.txt",
+        "sourceLine": 319867
+      },
+      {
+        "name": "non-virtual thunk to CAI_BehaviorHost<CAI_BaseNPC>::BackBridge_OnTakeDamage_Alive(CTakeDamageInfo const&)",
+        "requestedSymbol": "_ZThn4928_N16CAI_BehaviorHostI11CAI_BaseNPCE29BackBridge_OnTakeDamage_AliveERK15CTakeDamageInfo",
+        "resolvedSymbol": "_ZThn4920_N16CAI_BehaviorHostI11CAI_BaseNPCE29BackBridge_OnTakeDamage_AliveERK15CTakeDamageInfo",
+        "sourceFile": "tf2classified-function-signatures.game.server.txt",
+        "sourceLine": 319873
+      },
+      {
+        "name": "non-virtual thunk to CAI_BehaviorHost<CAI_BaseNPC>::BackBridge_QueryHearSound(CSound*)",
+        "requestedSymbol": "_ZThn4928_N16CAI_BehaviorHostI11CAI_BaseNPCE25BackBridge_QueryHearSoundEP6CSound",
+        "resolvedSymbol": "_ZThn4920_N16CAI_BehaviorHostI11CAI_BaseNPCE25BackBridge_QueryHearSoundEP6CSound",
+        "sourceFile": "tf2classified-function-signatures.game.server.txt",
+        "sourceLine": 319879
+      },
+      {
+        "name": "non-virtual thunk to CAI_BehaviorHost<CAI_BaseNPC>::BackBridge_SelectSchedule()",
+        "requestedSymbol": "_ZThn4928_N16CAI_BehaviorHostI11CAI_BaseNPCE25BackBridge_SelectScheduleEv",
+        "resolvedSymbol": "_ZThn4920_N16CAI_BehaviorHostI11CAI_BaseNPCE25BackBridge_SelectScheduleEv",
+        "sourceFile": "tf2classified-function-signatures.game.server.txt",
+        "sourceLine": 319885
+      },
+      {
+        "name": "non-virtual thunk to CAI_BehaviorHost<CAI_BaseNPC>::BackBridge_ShouldIgnoreSound(CSound*)",
+        "requestedSymbol": "_ZThn4928_N16CAI_BehaviorHostI11CAI_BaseNPCE28BackBridge_ShouldIgnoreSoundEP6CSound",
+        "resolvedSymbol": "_ZThn4920_N16CAI_BehaviorHostI11CAI_BaseNPCE28BackBridge_ShouldIgnoreSoundEP6CSound",
+        "sourceFile": "tf2classified-function-signatures.game.server.txt",
+        "sourceLine": 319891
+      },
+      {
+        "name": "non-virtual thunk to CAI_BehaviorHost<CAI_BaseNPC>::BackBridge_ShouldPickADeathPose()",
+        "requestedSymbol": "_ZThn4928_N16CAI_BehaviorHostI11CAI_BaseNPCE31BackBridge_ShouldPickADeathPoseEv",
+        "resolvedSymbol": "_ZThn4920_N16CAI_BehaviorHostI11CAI_BaseNPCE31BackBridge_ShouldPickADeathPoseEv",
+        "sourceFile": "tf2classified-function-signatures.game.server.txt",
+        "sourceLine": 319897
+      },
+      {
+        "name": "non-virtual thunk to CAI_BehaviorHost<CAI_BaseNPC>::BackBridge_ShouldPlayerAvoid()",
+        "requestedSymbol": "_ZThn4928_N16CAI_BehaviorHostI11CAI_BaseNPCE28BackBridge_ShouldPlayerAvoidEv",
+        "resolvedSymbol": "_ZThn4920_N16CAI_BehaviorHostI11CAI_BaseNPCE28BackBridge_ShouldPlayerAvoidEv",
+        "sourceFile": "tf2classified-function-signatures.game.server.txt",
+        "sourceLine": 319903
+      },
+      {
+        "name": "non-virtual thunk to CAI_BehaviorHost<CAI_BaseNPC>::BackBridge_Teleport(Vector const*, QAngle const*, Vector const*)",
+        "requestedSymbol": "_ZThn4928_N16CAI_BehaviorHostI11CAI_BaseNPCE19BackBridge_TeleportEPK6VectorPK6QAngleS4_",
+        "resolvedSymbol": "_ZThn4920_N16CAI_BehaviorHostI11CAI_BaseNPCE19BackBridge_TeleportEPK6VectorPK6QAngleS4_",
+        "sourceFile": "tf2classified-function-signatures.game.server.txt",
+        "sourceLine": 319909
+      },
+      {
+        "name": "non-virtual thunk to CAI_BehaviorHost<CAI_BaseNPC>::BackBridge_TranslateSchedule(int)",
+        "requestedSymbol": "_ZThn4928_N16CAI_BehaviorHostI11CAI_BaseNPCE28BackBridge_TranslateScheduleEi",
+        "resolvedSymbol": "_ZThn4920_N16CAI_BehaviorHostI11CAI_BaseNPCE28BackBridge_TranslateScheduleEi",
+        "sourceFile": "tf2classified-function-signatures.game.server.txt",
+        "sourceLine": 319915
+      },
+      {
+        "name": "non-virtual thunk to CAI_ExpresserHost<CAI_BaseHumanoid>::GetSinkExpresser()",
+        "requestedSymbol": "_ZThn4984_N17CAI_ExpresserHostI16CAI_BaseHumanoidE16GetSinkExpresserEv",
+        "resolvedSymbol": "_ZThn4976_N17CAI_ExpresserHostI16CAI_BaseHumanoidE16GetSinkExpresserEv",
+        "sourceFile": "tf2classified-function-signatures.game.server.txt",
+        "sourceLine": 319927
+      },
+      {
+        "name": "non-virtual thunk to CAI_ExpresserHost<CAI_BaseHumanoid>::Speak(CAI_Concept, ResponseRules::CriteriaSet*, char*, unsigned long, IRecipientFilter*)",
+        "requestedSymbol": "_ZThn4984_N17CAI_ExpresserHostI16CAI_BaseHumanoidE5SpeakE11CAI_ConceptPN13ResponseRules11CriteriaSetEPcmP16IRecipientFilter",
+        "resolvedSymbol": "_ZThn4976_N17CAI_ExpresserHostI16CAI_BaseHumanoidE5SpeakE11CAI_ConceptPN13ResponseRules11CriteriaSetEPcmP16IRecipientFilter",
+        "sourceFile": "tf2classified-function-signatures.game.server.txt",
+        "sourceLine": 319933
+      },
+      {
+        "name": "non-virtual thunk to CAI_PlayerAlly::IsAllowedToSpeakFollowup(CAI_Concept, CBaseEntity*, bool)",
+        "requestedSymbol": "_ZThn4984_N14CAI_PlayerAlly24IsAllowedToSpeakFollowupE11CAI_ConceptP11CBaseEntityb",
+        "resolvedSymbol": "_ZThn4976_N14CAI_PlayerAlly24IsAllowedToSpeakFollowupE11CAI_ConceptP11CBaseEntityb",
+        "sourceFile": "tf2classified-function-signatures.game.server.txt",
+        "sourceLine": 320035
+      },
+      {
+        "name": "non-virtual thunk to CAI_PlayerAlly::OnSpokeConcept(CAI_Concept, ResponseRules::CRR_Response*)",
+        "requestedSymbol": "_ZThn4984_N14CAI_PlayerAlly14OnSpokeConceptE11CAI_ConceptPN13ResponseRules12CRR_ResponseE",
+        "resolvedSymbol": "_ZThn4976_N14CAI_PlayerAlly14OnSpokeConceptE11CAI_ConceptPN13ResponseRules12CRR_ResponseE",
+        "sourceFile": "tf2classified-function-signatures.game.server.txt",
+        "sourceLine": 320041
+      },
+      {
+        "name": "non-virtual thunk to CAI_PlayerAlly::OnStartSpeaking()",
+        "requestedSymbol": "_ZThn4984_N14CAI_PlayerAlly15OnStartSpeakingEv",
+        "resolvedSymbol": "_ZThn4976_N14CAI_PlayerAlly15OnStartSpeakingEv",
+        "sourceFile": "tf2classified-function-signatures.game.server.txt",
+        "sourceLine": 320047
+      },
+      {
+        "name": "non-virtual thunk to CObjectTeleporter::FireGameEvent(IGameEvent*)",
+        "requestedSymbol": "_ZThn3848_N17CObjectTeleporter13FireGameEventEP10IGameEvent",
+        "resolvedSymbol": "_ZThn3840_N17CObjectTeleporter13FireGameEventEP10IGameEvent",
+        "sourceFile": "tf2classified-function-signatures.game.server.txt",
+        "sourceLine": 322861
+      },
+      {
+        "name": "non-virtual thunk to CTFBot::FireGameEvent(IGameEvent*)",
+        "requestedSymbol": "_ZThn12016_N6CTFBot13FireGameEventEP10IGameEvent",
+        "resolvedSymbol": "_ZThn11992_N6CTFBot13FireGameEventEP10IGameEvent",
+        "sourceFile": "tf2classified-function-signatures.game.server.txt",
+        "sourceLine": 324199
+      },
+      {
+        "name": "non-virtual thunk to CTFBot::GetBodyInterface() const",
+        "requestedSymbol": "_ZThn11632_NK6CTFBot16GetBodyInterfaceEv",
+        "resolvedSymbol": "_ZThn11608_NK6CTFBot16GetBodyInterfaceEv",
+        "sourceFile": "tf2classified-function-signatures.game.server.txt",
+        "sourceLine": 324205
+      },
+      {
+        "name": "non-virtual thunk to CTFBot::GetIntentionInterface() const",
+        "requestedSymbol": "_ZThn11632_NK6CTFBot21GetIntentionInterfaceEv",
+        "resolvedSymbol": "_ZThn11608_NK6CTFBot21GetIntentionInterfaceEv",
+        "sourceFile": "tf2classified-function-signatures.game.server.txt",
+        "sourceLine": 324211
+      },
+      {
+        "name": "non-virtual thunk to CTFBot::GetLocomotionInterface() const",
+        "requestedSymbol": "_ZThn11632_NK6CTFBot22GetLocomotionInterfaceEv",
+        "resolvedSymbol": "_ZThn11608_NK6CTFBot22GetLocomotionInterfaceEv",
+        "sourceFile": "tf2classified-function-signatures.game.server.txt",
+        "sourceLine": 324217
+      },
+      {
+        "name": "non-virtual thunk to CTFBot::GetVisionInterface() const",
+        "requestedSymbol": "_ZThn11632_NK6CTFBot18GetVisionInterfaceEv",
+        "resolvedSymbol": "_ZThn11608_NK6CTFBot18GetVisionInterfaceEv",
+        "sourceFile": "tf2classified-function-signatures.game.server.txt",
+        "sourceLine": 324223
+      },
+      {
+        "name": "non-virtual thunk to CTFBot::IsDebugFilterMatch(char const*) const",
+        "requestedSymbol": "_ZThn11632_NK6CTFBot18IsDebugFilterMatchEPKc",
+        "resolvedSymbol": "_ZThn11608_NK6CTFBot18IsDebugFilterMatchEPKc",
+        "sourceFile": "tf2classified-function-signatures.game.server.txt",
+        "sourceLine": 324229
+      },
+      {
+        "name": "non-virtual thunk to CTFBot::OnWeaponFired(CBaseCombatCharacter*, CBaseCombatWeapon*)",
+        "requestedSymbol": "_ZThn11632_N6CTFBot13OnWeaponFiredEP20CBaseCombatCharacterP17CBaseCombatWeapon",
+        "resolvedSymbol": "_ZThn11608_N6CTFBot13OnWeaponFiredEP20CBaseCombatCharacterP17CBaseCombatWeapon",
+        "sourceFile": "tf2classified-function-signatures.game.server.txt",
+        "sourceLine": 324235
+      },
+      {
+        "name": "non-virtual thunk to CTFBot::PressAltFireButton(float)",
+        "requestedSymbol": "_ZThn11776_N6CTFBot18PressAltFireButtonEf",
+        "resolvedSymbol": "_ZThn11752_N6CTFBot18PressAltFireButtonEf",
+        "sourceFile": "tf2classified-function-signatures.game.server.txt",
+        "sourceLine": 324241
+      },
+      {
+        "name": "non-virtual thunk to CTFBot::PressFireButton(float)",
+        "requestedSymbol": "_ZThn11776_N6CTFBot15PressFireButtonEf",
+        "resolvedSymbol": "_ZThn11752_N6CTFBot15PressFireButtonEf",
+        "sourceFile": "tf2classified-function-signatures.game.server.txt",
+        "sourceLine": 324247
+      },
+      {
+        "name": "non-virtual thunk to CTFBot::PressSpecialFireButton(float)",
+        "requestedSymbol": "_ZThn11776_N6CTFBot22PressSpecialFireButtonEf",
+        "resolvedSymbol": "_ZThn11752_N6CTFBot22PressSpecialFireButtonEf",
+        "sourceFile": "tf2classified-function-signatures.game.server.txt",
+        "sourceLine": 324253
+      },
+      {
+        "name": "non-virtual thunk to NextBotPlayer<CTFPlayer>::GetEntity() const",
+        "requestedSymbol": "_ZThn11632_NK13NextBotPlayerI9CTFPlayerE9GetEntityEv",
+        "resolvedSymbol": "_ZThn11608_NK13NextBotPlayerI9CTFPlayerE9GetEntityEv",
+        "sourceFile": "tf2classified-function-signatures.game.server.txt",
+        "sourceLine": 327307
+      },
+      {
+        "name": "non-virtual thunk to NextBotPlayer<CTFPlayer>::IsRemovedOnReset() const",
+        "requestedSymbol": "_ZThn11632_NK13NextBotPlayerI9CTFPlayerE16IsRemovedOnResetEv",
+        "resolvedSymbol": "_ZThn11608_NK13NextBotPlayerI9CTFPlayerE16IsRemovedOnResetEv",
+        "sourceFile": "tf2classified-function-signatures.game.server.txt",
+        "sourceLine": 327313
+      },
+      {
+        "name": "non-virtual thunk to NextBotPlayer<CTFPlayer>::OnNavAreaChanged(CNavArea*, CNavArea*)",
+        "requestedSymbol": "_ZThn11632_N13NextBotPlayerI9CTFPlayerE16OnNavAreaChangedEP8CNavAreaS3_",
+        "resolvedSymbol": "_ZThn11608_N13NextBotPlayerI9CTFPlayerE16OnNavAreaChangedEP8CNavAreaS3_",
+        "sourceFile": "tf2classified-function-signatures.game.server.txt",
+        "sourceLine": 327319
+      },
+      {
+        "name": "non-virtual thunk to NextBotPlayer<CTFPlayer>::PressAltFireButton(float)",
+        "requestedSymbol": "_ZThn11776_N13NextBotPlayerI9CTFPlayerE18PressAltFireButtonEf",
+        "resolvedSymbol": "_ZThn11752_N13NextBotPlayerI9CTFPlayerE18PressAltFireButtonEf",
+        "sourceFile": "tf2classified-function-signatures.game.server.txt",
+        "sourceLine": 327325
+      },
+      {
+        "name": "non-virtual thunk to NextBotPlayer<CTFPlayer>::PressBackwardButton(float)",
+        "requestedSymbol": "_ZThn11776_N13NextBotPlayerI9CTFPlayerE19PressBackwardButtonEf",
+        "resolvedSymbol": "_ZThn11752_N13NextBotPlayerI9CTFPlayerE19PressBackwardButtonEf",
+        "sourceFile": "tf2classified-function-signatures.game.server.txt",
+        "sourceLine": 327331
+      },
+      {
+        "name": "non-virtual thunk to NextBotPlayer<CTFPlayer>::PressCrouchButton(float)",
+        "requestedSymbol": "_ZThn11776_N13NextBotPlayerI9CTFPlayerE17PressCrouchButtonEf",
+        "resolvedSymbol": "_ZThn11752_N13NextBotPlayerI9CTFPlayerE17PressCrouchButtonEf",
+        "sourceFile": "tf2classified-function-signatures.game.server.txt",
+        "sourceLine": 327337
+      },
+      {
+        "name": "non-virtual thunk to NextBotPlayer<CTFPlayer>::PressFireButton(float)",
+        "requestedSymbol": "_ZThn11776_N13NextBotPlayerI9CTFPlayerE15PressFireButtonEf",
+        "resolvedSymbol": "_ZThn11752_N13NextBotPlayerI9CTFPlayerE15PressFireButtonEf",
+        "sourceFile": "tf2classified-function-signatures.game.server.txt",
+        "sourceLine": 327343
+      },
+      {
+        "name": "non-virtual thunk to NextBotPlayer<CTFPlayer>::PressForwardButton(float)",
+        "requestedSymbol": "_ZThn11776_N13NextBotPlayerI9CTFPlayerE18PressForwardButtonEf",
+        "resolvedSymbol": "_ZThn11752_N13NextBotPlayerI9CTFPlayerE18PressForwardButtonEf",
+        "sourceFile": "tf2classified-function-signatures.game.server.txt",
+        "sourceLine": 327349
+      },
+      {
+        "name": "non-virtual thunk to NextBotPlayer<CTFPlayer>::PressJumpButton(float)",
+        "requestedSymbol": "_ZThn11776_N13NextBotPlayerI9CTFPlayerE15PressJumpButtonEf",
+        "resolvedSymbol": "_ZThn11752_N13NextBotPlayerI9CTFPlayerE15PressJumpButtonEf",
+        "sourceFile": "tf2classified-function-signatures.game.server.txt",
+        "sourceLine": 327355
+      },
+      {
+        "name": "non-virtual thunk to NextBotPlayer<CTFPlayer>::PressLeftButton(float)",
+        "requestedSymbol": "_ZThn11776_N13NextBotPlayerI9CTFPlayerE15PressLeftButtonEf",
+        "resolvedSymbol": "_ZThn11752_N13NextBotPlayerI9CTFPlayerE15PressLeftButtonEf",
+        "sourceFile": "tf2classified-function-signatures.game.server.txt",
+        "sourceLine": 327361
+      },
+      {
+        "name": "non-virtual thunk to NextBotPlayer<CTFPlayer>::PressMeleeButton(float)",
+        "requestedSymbol": "_ZThn11776_N13NextBotPlayerI9CTFPlayerE16PressMeleeButtonEf",
+        "resolvedSymbol": "_ZThn11752_N13NextBotPlayerI9CTFPlayerE16PressMeleeButtonEf",
+        "sourceFile": "tf2classified-function-signatures.game.server.txt",
+        "sourceLine": 327367
+      },
+      {
+        "name": "non-virtual thunk to NextBotPlayer<CTFPlayer>::PressReloadButton(float)",
+        "requestedSymbol": "_ZThn11776_N13NextBotPlayerI9CTFPlayerE17PressReloadButtonEf",
+        "resolvedSymbol": "_ZThn11752_N13NextBotPlayerI9CTFPlayerE17PressReloadButtonEf",
+        "sourceFile": "tf2classified-function-signatures.game.server.txt",
+        "sourceLine": 327373
+      },
+      {
+        "name": "non-virtual thunk to NextBotPlayer<CTFPlayer>::PressRightButton(float)",
+        "requestedSymbol": "_ZThn11776_N13NextBotPlayerI9CTFPlayerE16PressRightButtonEf",
+        "resolvedSymbol": "_ZThn11752_N13NextBotPlayerI9CTFPlayerE16PressRightButtonEf",
+        "sourceFile": "tf2classified-function-signatures.game.server.txt",
+        "sourceLine": 327379
+      },
+      {
+        "name": "non-virtual thunk to NextBotPlayer<CTFPlayer>::PressSpecialFireButton(float)",
+        "requestedSymbol": "_ZThn11776_N13NextBotPlayerI9CTFPlayerE22PressSpecialFireButtonEf",
+        "resolvedSymbol": "_ZThn11752_N13NextBotPlayerI9CTFPlayerE22PressSpecialFireButtonEf",
+        "sourceFile": "tf2classified-function-signatures.game.server.txt",
+        "sourceLine": 327385
+      },
+      {
+        "name": "non-virtual thunk to NextBotPlayer<CTFPlayer>::PressUseButton(float)",
+        "requestedSymbol": "_ZThn11776_N13NextBotPlayerI9CTFPlayerE14PressUseButtonEf",
+        "resolvedSymbol": "_ZThn11752_N13NextBotPlayerI9CTFPlayerE14PressUseButtonEf",
+        "sourceFile": "tf2classified-function-signatures.game.server.txt",
+        "sourceLine": 327391
+      },
+      {
+        "name": "non-virtual thunk to NextBotPlayer<CTFPlayer>::PressWalkButton(float)",
+        "requestedSymbol": "_ZThn11776_N13NextBotPlayerI9CTFPlayerE15PressWalkButtonEf",
+        "resolvedSymbol": "_ZThn11752_N13NextBotPlayerI9CTFPlayerE15PressWalkButtonEf",
+        "sourceFile": "tf2classified-function-signatures.game.server.txt",
+        "sourceLine": 327397
+      },
+      {
+        "name": "non-virtual thunk to NextBotPlayer<CTFPlayer>::ReleaseAltFireButton()",
+        "requestedSymbol": "_ZThn11776_N13NextBotPlayerI9CTFPlayerE20ReleaseAltFireButtonEv",
+        "resolvedSymbol": "_ZThn11752_N13NextBotPlayerI9CTFPlayerE20ReleaseAltFireButtonEv",
+        "sourceFile": "tf2classified-function-signatures.game.server.txt",
+        "sourceLine": 327403
+      },
+      {
+        "name": "non-virtual thunk to NextBotPlayer<CTFPlayer>::ReleaseBackwardButton()",
+        "requestedSymbol": "_ZThn11776_N13NextBotPlayerI9CTFPlayerE21ReleaseBackwardButtonEv",
+        "resolvedSymbol": "_ZThn11752_N13NextBotPlayerI9CTFPlayerE21ReleaseBackwardButtonEv",
+        "sourceFile": "tf2classified-function-signatures.game.server.txt",
+        "sourceLine": 327409
+      },
+      {
+        "name": "non-virtual thunk to NextBotPlayer<CTFPlayer>::ReleaseCrouchButton()",
+        "requestedSymbol": "_ZThn11776_N13NextBotPlayerI9CTFPlayerE19ReleaseCrouchButtonEv",
+        "resolvedSymbol": "_ZThn11752_N13NextBotPlayerI9CTFPlayerE19ReleaseCrouchButtonEv",
+        "sourceFile": "tf2classified-function-signatures.game.server.txt",
+        "sourceLine": 327415
+      },
+      {
+        "name": "non-virtual thunk to NextBotPlayer<CTFPlayer>::ReleaseFireButton()",
+        "requestedSymbol": "_ZThn11776_N13NextBotPlayerI9CTFPlayerE17ReleaseFireButtonEv",
+        "resolvedSymbol": "_ZThn11752_N13NextBotPlayerI9CTFPlayerE17ReleaseFireButtonEv",
+        "sourceFile": "tf2classified-function-signatures.game.server.txt",
+        "sourceLine": 327421
+      },
+      {
+        "name": "non-virtual thunk to NextBotPlayer<CTFPlayer>::ReleaseForwardButton()",
+        "requestedSymbol": "_ZThn11776_N13NextBotPlayerI9CTFPlayerE20ReleaseForwardButtonEv",
+        "resolvedSymbol": "_ZThn11752_N13NextBotPlayerI9CTFPlayerE20ReleaseForwardButtonEv",
+        "sourceFile": "tf2classified-function-signatures.game.server.txt",
+        "sourceLine": 327427
+      },
+      {
+        "name": "non-virtual thunk to NextBotPlayer<CTFPlayer>::ReleaseJumpButton()",
+        "requestedSymbol": "_ZThn11776_N13NextBotPlayerI9CTFPlayerE17ReleaseJumpButtonEv",
+        "resolvedSymbol": "_ZThn11752_N13NextBotPlayerI9CTFPlayerE17ReleaseJumpButtonEv",
+        "sourceFile": "tf2classified-function-signatures.game.server.txt",
+        "sourceLine": 327433
+      },
+      {
+        "name": "non-virtual thunk to NextBotPlayer<CTFPlayer>::ReleaseLeftButton()",
+        "requestedSymbol": "_ZThn11776_N13NextBotPlayerI9CTFPlayerE17ReleaseLeftButtonEv",
+        "resolvedSymbol": "_ZThn11752_N13NextBotPlayerI9CTFPlayerE17ReleaseLeftButtonEv",
+        "sourceFile": "tf2classified-function-signatures.game.server.txt",
+        "sourceLine": 327439
+      },
+      {
+        "name": "non-virtual thunk to NextBotPlayer<CTFPlayer>::ReleaseMeleeButton()",
+        "requestedSymbol": "_ZThn11776_N13NextBotPlayerI9CTFPlayerE18ReleaseMeleeButtonEv",
+        "resolvedSymbol": "_ZThn11752_N13NextBotPlayerI9CTFPlayerE18ReleaseMeleeButtonEv",
+        "sourceFile": "tf2classified-function-signatures.game.server.txt",
+        "sourceLine": 327445
+      },
+      {
+        "name": "non-virtual thunk to NextBotPlayer<CTFPlayer>::ReleaseReloadButton()",
+        "requestedSymbol": "_ZThn11776_N13NextBotPlayerI9CTFPlayerE19ReleaseReloadButtonEv",
+        "resolvedSymbol": "_ZThn11752_N13NextBotPlayerI9CTFPlayerE19ReleaseReloadButtonEv",
+        "sourceFile": "tf2classified-function-signatures.game.server.txt",
+        "sourceLine": 327451
+      },
+      {
+        "name": "non-virtual thunk to NextBotPlayer<CTFPlayer>::ReleaseRightButton()",
+        "requestedSymbol": "_ZThn11776_N13NextBotPlayerI9CTFPlayerE18ReleaseRightButtonEv",
+        "resolvedSymbol": "_ZThn11752_N13NextBotPlayerI9CTFPlayerE18ReleaseRightButtonEv",
+        "sourceFile": "tf2classified-function-signatures.game.server.txt",
+        "sourceLine": 327457
+      },
+      {
+        "name": "non-virtual thunk to NextBotPlayer<CTFPlayer>::ReleaseSpecialFireButton()",
+        "requestedSymbol": "_ZThn11776_N13NextBotPlayerI9CTFPlayerE24ReleaseSpecialFireButtonEv",
+        "resolvedSymbol": "_ZThn11752_N13NextBotPlayerI9CTFPlayerE24ReleaseSpecialFireButtonEv",
+        "sourceFile": "tf2classified-function-signatures.game.server.txt",
+        "sourceLine": 327463
+      },
+      {
+        "name": "non-virtual thunk to NextBotPlayer<CTFPlayer>::ReleaseUseButton()",
+        "requestedSymbol": "_ZThn11776_N13NextBotPlayerI9CTFPlayerE16ReleaseUseButtonEv",
+        "resolvedSymbol": "_ZThn11752_N13NextBotPlayerI9CTFPlayerE16ReleaseUseButtonEv",
+        "sourceFile": "tf2classified-function-signatures.game.server.txt",
+        "sourceLine": 327469
+      },
+      {
+        "name": "non-virtual thunk to NextBotPlayer<CTFPlayer>::ReleaseWalkButton()",
+        "requestedSymbol": "_ZThn11776_N13NextBotPlayerI9CTFPlayerE17ReleaseWalkButtonEv",
+        "resolvedSymbol": "_ZThn11752_N13NextBotPlayerI9CTFPlayerE17ReleaseWalkButtonEv",
+        "sourceFile": "tf2classified-function-signatures.game.server.txt",
+        "sourceLine": 327475
+      },
+      {
+        "name": "non-virtual thunk to NextBotPlayer<CTFPlayer>::SetButtonScale(float, float)",
+        "requestedSymbol": "_ZThn11776_N13NextBotPlayerI9CTFPlayerE14SetButtonScaleEff",
+        "resolvedSymbol": "_ZThn11752_N13NextBotPlayerI9CTFPlayerE14SetButtonScaleEff",
+        "sourceFile": "tf2classified-function-signatures.game.server.txt",
+        "sourceLine": 327481
+      },
+      {
+        "name": "non-virtual thunk to NextBotPlayer<CTFPlayer>::Update()",
+        "requestedSymbol": "_ZThn11632_N13NextBotPlayerI9CTFPlayerE6UpdateEv",
+        "resolvedSymbol": "_ZThn11608_N13NextBotPlayerI9CTFPlayerE6UpdateEv",
+        "sourceFile": "tf2classified-function-signatures.game.server.txt",
+        "sourceLine": 327487
+      },
+      {
+        "name": "non-virtual thunk to NextBotPlayer<CTFPlayer>::~NextBotPlayer()",
+        "requestedSymbol": "_ZThn11632_N13NextBotPlayerI9CTFPlayerED0Ev",
+        "resolvedSymbol": "_ZThn11608_N13NextBotPlayerI9CTFPlayerED0Ev",
+        "sourceFile": "tf2classified-function-signatures.game.server.txt",
+        "sourceLine": 327493
+      },
+      {
+        "name": "non-virtual thunk to NextBotPlayer<CTFPlayer>::~NextBotPlayer() [_ZThn11632_N13NextBotPlayerI9CTFPlayerED1Ev]",
+        "requestedSymbol": "_ZThn11632_N13NextBotPlayerI9CTFPlayerED1Ev",
+        "resolvedSymbol": "_ZThn11608_N13NextBotPlayerI9CTFPlayerED1Ev",
+        "sourceFile": "tf2classified-function-signatures.game.server.txt",
+        "sourceLine": 327499
+      }
+    ],
+    "unresolvedReport": "tf2c-unresolved-signatures.json"
+  },
   "binaries": {
-    "engineReference": {
-      "file": "engine_srv.so",
-      "sha256": "96254d754c3bc56d66e0d0d1a188b37e167f15d19386575d300463906e2eccb3"
-    },
-    "serverReference": {
-      "file": "server_srv.so",
-      "sha256": "f70ea14df49afaaff6a2a53640c86b81c48367d0e21939b02091835335373b1c"
-    },
     "engine": {
       "file": "engine_srv.so",
       "sha256": "96254d754c3bc56d66e0d0d1a188b37e167f15d19386575d300463906e2eccb3",
       "elfClass": 64,
       "machine": "EM_X86_64",
-      "functionSymbols": 8635,
+      "hasStaticSymbolTable": true,
+      "functionSymbols": 8646,
+      "uniqueSymbolNames": 8635,
       "exportedFunctions": 30,
-      "writtenSignatures": 3595,
-      "sourceGameDataMatches": {
-        "anchors": 7999,
-        "symbolMatches": 30,
-        "patterns": 3565,
-        "missing": 143,
-        "ambiguous": 49,
-        "notUnique": 3934,
-        "incompatibleReference": 0
-      }
+      "ambiguousSymbolNames": 4,
+      "sourceEntries": 7728,
+      "resolvedExactSymbols": 7726,
+      "resolvedByFullDemangledName": 0,
+      "unresolvedEntries": 2,
+      "exportedSymbols": 30,
+      "internalSymbols": 7696,
+      "writtenSignatures": 7726,
+      "sourceGameData": [
+        {
+          "file": "tf2classified-function-signatures.game.engine.txt",
+          "sha256": "3b6db25057bde20823591b6c544abab0f109ff52350d63050170da1c16bb479f",
+          "entries": 7728
+        }
+      ]
     },
     "server": {
       "file": "server_srv.so",
-      "sha256": "de640fcb050eb53764845a95ea7428ee98ef90b4cc16ab340265c376cfd77016",
+      "sha256": "f70ea14df49afaaff6a2a53640c86b81c48367d0e21939b02091835335373b1c",
       "elfClass": 64,
       "machine": "EM_X86_64",
-      "functionSymbols": 67464,
-      "exportedFunctions": 1534,
-      "writtenSignatures": 5741,
-      "sourceGameDataMatches": {
-        "anchors": 53570,
-        "symbolMatches": 17,
-        "patterns": 4220,
-        "missing": 5142,
-        "ambiguous": 956,
-        "notUnique": 33415,
-        "incompatibleReference": 9591
-      }
+      "hasStaticSymbolTable": true,
+      "functionSymbols": 67750,
+      "uniqueSymbolNames": 66908,
+      "exportedFunctions": 1533,
+      "ambiguousSymbolNames": 54,
+      "sourceEntries": 55147,
+      "resolvedExactSymbols": 54581,
+      "resolvedByFullDemangledName": 82,
+      "unresolvedEntries": 484,
+      "exportedSymbols": 29,
+      "internalSymbols": 54634,
+      "writtenSignatures": 54663,
+      "sourceGameData": [
+        {
+          "file": "tf2classified-function-signatures.game.server.txt",
+          "sha256": "746e5ef17cb30a42f9d0bb13a55e2cba1af1b1ceb413835b101335d6342ea7e4",
+          "entries": 55114
+        },
+        {
+          "file": "tf2c-function-signatures.game.server.txt",
+          "sha256": "be18d7c9e3a6f00aba089ee5f4f4f379085cd51a359f04423da5be83b51e241e",
+          "entries": 31
+        },
+        {
+          "file": "tf2c.sdktools.games.txt",
+          "sha256": "fe4e69830bfb93cd2437b53ed79af7d4296bb36c49ee904abda745b68bba738e",
+          "entries": 2
+        }
+      ]
     }
-  },
-  "writtenSignatures": {
-    "engine": 3595,
-    "server": 5741
   }
 }
