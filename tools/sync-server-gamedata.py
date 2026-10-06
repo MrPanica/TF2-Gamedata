@@ -271,65 +271,52 @@ def patch_gamedata_content(
     updated_lines = list(lines)
     changes: list[dict] = []
 
-    # Stack of blocks: [name, brace_depth]
-    # Level 1: Game name (e.g. "tf", "left4dead", etc.)
-    # Level 2: Section name (e.g. "Offsets", "Signatures")
-    # Level 3: Entry name (e.g. "CTFPlayer::GetMaxHealth")
-    current_game = None
-    current_section = None
-    current_entry = None
+    block_stack: list[str] = []
+    pending_name: str | None = None
 
-    brace_depth = 0
-    game_depth = -1
-    section_depth = -1
-    entry_depth = -1
-
-    re_block_header = re.compile(r'^\s*"([^"]+)"\s*(?:/\*.*?\*/|//.*)?$')
+    re_name = re.compile(r'^\s*"([^"]+)"')
     re_prop = re.compile(r'^(\s*)"(windows|linux|windows64|linux64)"\s+"([^"]*)"(.*)$')
 
     for idx, line in enumerate(lines):
-        clean = line.strip()
+        clean = re.sub(r"//.*|/\*.*?\*/", "", line).strip()
+        if not clean:
+            continue
 
-        # Handle braces and block transitions
-        opens = clean.count("{")
-        closes = clean.count("}")
+        # Look for a block name candidate
+        m_name = re_name.match(clean)
+        if m_name:
+            cand = m_name.group(1)
+            # Only a block header if it has '{' or is a standalone quoted identifier
+            if "{" in clean or not re.search(r'"[^"]+"\s+"[^"]+"', clean):
+                pending_name = cand
 
-        if opens > 0:
-            brace_depth += opens
-        if closes > 0:
-            brace_depth -= closes
-            if entry_depth >= 0 and brace_depth < entry_depth:
-                current_entry = None
-                entry_depth = -1
-            if section_depth >= 0 and brace_depth < section_depth:
-                current_section = None
-                section_depth = -1
-            if game_depth >= 0 and brace_depth < game_depth:
-                current_game = None
-                game_depth = -1
+        # Process brace opens
+        for ch in clean:
+            if ch == "{":
+                block_stack.append(pending_name or "<anon>")
+                pending_name = None
 
-        # Check for block headers
-        m_hdr = re_block_header.match(clean)
-        if m_hdr and not clean.startswith(("{", "}")):
-            name = m_hdr.group(1)
+        # Determine current scope from block_stack
+        current_section = None
+        current_entry = None
+        current_game = None
 
-            # Determine what block this is based on current state
-            if current_game is None:
-                if name.lower() != "games":
-                    current_game = name.lower()
-                    game_depth = brace_depth + (1 if "{" in clean else 0)
-            elif current_section is None:
-                if name in ("Offsets", "Signatures"):
-                    current_section = name
-                    section_depth = brace_depth + (1 if "{" in clean else 0)
-                elif current_game not in SUPPORTED_GAMES and name.lower() in SUPPORTED_GAMES:
-                    current_game = name.lower()
-                    game_depth = brace_depth + (1 if "{" in clean else 0)
-            elif current_entry is None:
-                current_entry = name
-                entry_depth = brace_depth + (1 if "{" in clean else 0)
+        if "Offsets" in block_stack:
+            current_section = "Offsets"
+            sec_idx = block_stack.index("Offsets")
+            if sec_idx + 1 < len(block_stack):
+                current_entry = block_stack[sec_idx + 1]
+            if sec_idx > 0:
+                current_game = block_stack[sec_idx - 1].lower()
+        elif "Signatures" in block_stack:
+            current_section = "Signatures"
+            sec_idx = block_stack.index("Signatures")
+            if sec_idx + 1 < len(block_stack):
+                current_entry = block_stack[sec_idx + 1]
+            if sec_idx > 0:
+                current_game = block_stack[sec_idx - 1].lower()
 
-        # Check properties inside an entry
+        # Check properties if inside an entry in Offsets or Signatures
         if current_entry and current_section and (current_game is None or current_game in SUPPORTED_GAMES):
             m_prop = re_prop.match(line)
             if m_prop:
@@ -369,6 +356,12 @@ def patch_gamedata_content(
                                 "new": target_sig,
                             })
 
+        # Process brace closes after checking properties on this line
+        for ch in clean:
+            if ch == "}":
+                if block_stack:
+                    block_stack.pop()
+
     return "".join(updated_lines), changes
 
 
@@ -390,6 +383,12 @@ def sync_all_servers(
 
         for p in gamedata_dir.rglob("*.txt"):
             if p.name.endswith(".bak") or p.name.startswith("."):
+                continue
+
+            # If inside a foreign game directory (e.g. sdkhooks.games/game.openfortress.txt), skip unless it's TF2
+            parts = p.parts
+            in_games_dir = any(part.endswith(".games") for part in parts[:-1])
+            if in_games_dir and not (p.name.startswith("game.tf") or p.name == "master.games.txt"):
                 continue
 
             try:
