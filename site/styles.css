@@ -276,6 +276,21 @@ h1, h2, h3 { font-weight: 650; }
 .btn-sm-action { display: inline-flex; align-items: center; gap: 5px; font-size: 0.72rem; padding: 3px 8px; border-radius: 4px; background: var(--surface-soft); border: 1px solid var(--border); color: var(--foreground); cursor: pointer; transition: all .15s ease; white-space: nowrap; }
 .btn-sm-action svg { width: 12px; height: 12px; flex-shrink: 0; }
 .btn-sm-action:hover { background: var(--accent); color: #fff; border-color: var(--accent); }
+.vtables-table-wrap { border: 1px solid var(--border); border-radius: var(--radius); background: var(--surface); overflow-x: auto; box-shadow: var(--shadow); margin-top: 14px; }
+.vtables-table-wrap > .state { border: none; background: transparent; }
+.vtables-table { width: 100%; border-collapse: collapse; font-size: 0.82rem; background: var(--surface); }
+.vtables-table th, .vtables-table td { padding: 8px 14px; border-bottom: 1px solid var(--border); text-align: left; }
+.vtables-table th { background: var(--surface-raised); color: var(--muted); font-weight: 700; font-size: 0.74rem; letter-spacing: 0.03em; text-transform: uppercase; border-bottom: 1px solid var(--border-strong); }
+.vtables-table tbody tr { transition: background 0.12s ease; }
+.vtables-table tbody tr:nth-child(even) { background: color-mix(in srgb, var(--surface-raised) 45%, var(--surface)); }
+.vtables-table tbody tr:hover { background: color-mix(in srgb, var(--accent) 9%, var(--surface-raised)); }
+.vtables-table tbody tr:last-child td { border-bottom: none; }
+.vtables-col-l { width: 65px; min-width: 50px; text-align: right; font-family: ui-monospace, SFMono-Regular, Consolas, monospace; font-weight: 700; color: var(--foreground); }
+.vtables-col-w { width: 65px; min-width: 50px; text-align: right; font-family: ui-monospace, SFMono-Regular, Consolas, monospace; font-weight: 700; color: var(--muted); }
+.vtables-col-func { font-family: ui-monospace, SFMono-Regular, Consolas, monospace; word-break: break-all; }
+.vtables-func-code { color: #c82848; font-weight: 600; }
+[data-theme="dark"] .vtables-func-code { color: #ff7595; }
+.vtables-col-action { width: 95px; text-align: center; }
 .vtable-class-header { display: flex; justify-content: space-between; align-items: center; padding: 10px 14px; background: color-mix(in srgb, var(--accent) 12%, var(--surface-soft)); border-bottom: 1px solid var(--border); font-weight: 700; font-size: 0.85rem; }
 .result-card-vtable { display: grid; gap: 10px; padding: 14px 18px; }
 .result-card-vtable .result-header { justify-content: space-between; flex-wrap: wrap; gap: 10px; }
