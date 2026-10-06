@@ -386,9 +386,11 @@ def sync_all_servers(
                 continue
 
             # If inside a foreign game directory (e.g. sdkhooks.games/game.openfortress.txt), skip unless it's TF2
+            if p.name == "game.tf2classic.txt":
+                continue
             parts = p.parts
             in_games_dir = any(part.endswith(".games") for part in parts[:-1])
-            if in_games_dir and not (p.name.startswith("game.tf") or p.name == "master.games.txt"):
+            if in_games_dir and not (p.name in ("game.tf.txt", "game.tf2.txt", "master.games.txt") or p.name.startswith("game.tf.")):
                 continue
 
             try:
@@ -431,7 +433,9 @@ def generate_discord_report(changes: list[dict], total_files: int) -> dict:
             "total_files": 0,
             "total_offsets": 0,
             "total_signatures": 0,
-            "message": "GameData актуальна, изменений не требуется.",
+            "title": "TF2 GameData актуальна",
+            "description": "Изменений в VTable и сигнатурах не обнаружено, GameData на серверах актуальна.",
+            "color": 3066993,
         }
 
     offset_changes = [c for c in changes if c["type"] == "offset"]
@@ -452,7 +456,7 @@ def generate_discord_report(changes: list[dict], total_files: int) -> dict:
         f"Обновлено файлов: **{total_files}** | Офсетов VTable: **{len(offset_changes)}** | Сигнатур: **{len(sig_changes)}**\n",
     ]
 
-    for (entry, prop, old, new, kind), fnames in list(dedup.items())[:15]:
+    for (entry, prop, old, new, kind), fnames in list(dedup.items())[:12]:
         flist = ", ".join(fnames[:2])
         if len(fnames) > 2:
             flist += f" (+{len(fnames)-2})"
@@ -461,25 +465,18 @@ def generate_discord_report(changes: list[dict], total_files: int) -> dict:
             f"   ~~`{old}`~~ ➔ **`{new}`**"
         )
 
-    if len(dedup) > 15:
-        desc_lines.append(f"\n*...и ещё {len(dedup) - 15} обновлённых записей.*")
+    if len(dedup) > 12:
+        desc_lines.append(f"\n*...и ещё {len(dedup) - 12} обновлённых записей.*")
 
-    embed = {
-        "title": "🛡️ TF2 GameData автопатчер применил обновления",
-        "description": "\n".join(desc_lines),
-        "color": 3066993,  # Green / Success
-        "timestamp": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()),
-        "footer": {
-            "text": "TF2-Gamedata Automated Pipeline"
-        }
-    }
-
+    desc_text = "\n".join(desc_lines)
     return {
         "has_changes": True,
         "total_files": total_files,
         "total_offsets": len(offset_changes),
         "total_signatures": len(sig_changes),
-        "embed": embed,
+        "title": "🛡️ TF2 GameData автопатчер применил обновления",
+        "description": desc_text,
+        "color": 3066993,  # Green / Success
     }
 
 
