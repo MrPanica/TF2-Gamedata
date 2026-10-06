@@ -60,8 +60,8 @@
             <p data-i18n="tf2Description">Живой каталог сигнатур и смещений движка и сервера (автоматическое обновление).</p>
             <div class="game-card-meta">
               <span><strong id="tf2-total">—</strong> <span data-i18n="entriesLabel">записей</span></span>
-              <span><strong id="tf2-engine">—</strong> engine</span>
-              <span><strong id="tf2-server">—</strong> server</span>
+              <span><strong id="tf2-engine">—</strong> <span data-i18n="engineLibraryLabel">engine</span></span>
+              <span><strong id="tf2-server">—</strong> <span data-i18n="serverLibraryLabel">server</span></span>
               <span><strong id="tf2-vtables">232 270</strong> <span data-i18n="vtablesMetaLabel">офсетов</span></span>
             </div>
           </div>
@@ -78,8 +78,8 @@
             <p data-i18n="classifiedDescription">Архивный снимок от 21.08.2026 (поддержка заморожена).</p>
             <div class="game-card-meta">
               <span><strong id="tf2c-total">—</strong> <span data-i18n="entriesLabel">записей</span></span>
-              <span><strong id="tf2c-engine">—</strong> engine</span>
-              <span><strong id="tf2c-server">—</strong> server</span>
+              <span><strong id="tf2c-engine">—</strong> <span data-i18n="engineLibraryLabel">engine</span></span>
+              <span><strong id="tf2c-server">—</strong> <span data-i18n="serverLibraryLabel">server</span></span>
               <span><strong id="tf2c-vtables">—</strong> <span data-i18n="vtablesMetaLabel">офсетов</span></span>
             </div>
           </div>
@@ -100,6 +100,11 @@
                 <span>📋</span>
                 <span data-i18n="tabVtables">VTable</span>
                 <span id="tab-vtables-badge" class="tab-badge">232k</span>
+              </button>
+              <button id="tab-global" type="button" class="catalog-tab" role="tab" aria-selected="false" data-tab="global">
+                <span>🔍</span>
+                <span data-i18n="tabGlobalSearch">Общий поиск</span>
+                <span id="tab-global-badge" class="tab-badge" data-i18n="globalBadge">Везде</span>
               </button>
             </div>
             <p id="game-note" class="game-note" data-i18n="classifiedOnlyX64" hidden>Для Classified доступны только сигнатуры Linux x64.</p>
@@ -158,10 +163,10 @@
           <div id="vtables-search-controls" hidden>
             <label class="field search-field" for="vtable-query">
               <span data-i18n="searchVtablePlaceholder">Поиск по классу, функции или оффсету</span>
-              <input id="vtable-query" type="search" autocomplete="off" placeholder="Например: CRestore, GetReadPos или 12" />
+              <input id="vtable-query" type="search" autocomplete="off" placeholder="Например: CRestore, GetReadPos или 12" data-i18n-placeholder="searchVtablePlaceholder" />
             </label>
 
-            <div class="filters vtables-filters" aria-label="Фильтры VTable">
+            <div class="filters vtables-filters" aria-label="Фильтры VTable" data-i18n-aria="vtableFiltersAria">
               <label class="field" for="vtable-class">
                 <span data-i18n="vtableClassSelect">Класс C++</span>
                 <select id="vtable-class"></select>
@@ -170,6 +175,33 @@
               <label class="field" for="vtable-source">
                 <span data-i18n="libraryLabel">Библиотека</span>
                 <select id="vtable-source">
+                  <option value="all" data-i18n="all">Все</option>
+                  <option value="server">server</option>
+                  <option value="engine">engine</option>
+                </select>
+              </label>
+            </div>
+          </div>
+
+          <div id="global-search-controls" hidden>
+            <label class="field search-field" for="global-query">
+              <span data-i18n="globalQueryLabel">Общий поиск по сигнатурам, классам, методам и офсетам</span>
+              <input id="global-query" type="search" autocomplete="off" placeholder="Например: TakeDamage, CRestore, AddEmptyMesh или 12" data-i18n-placeholder="searchGlobalPlaceholder" />
+            </label>
+
+            <div class="filters global-filters" aria-label="Фильтры общего поиска" data-i18n-aria="globalFiltersAria">
+              <label class="field" for="global-type">
+                <span data-i18n="categoryLabel">Категория</span>
+                <select id="global-type">
+                  <option value="all" data-i18n="globalTypeAll">Все результаты (сигнатуры и VTable)</option>
+                  <option value="signatures" data-i18n="globalTypeSignatures">Только сигнатуры</option>
+                  <option value="vtables" data-i18n="globalTypeVtables">Только VTable офсеты</option>
+                </select>
+              </label>
+
+              <label class="field" for="global-source">
+                <span data-i18n="libraryLabel">Библиотека</span>
+                <select id="global-source">
                   <option value="all" data-i18n="all">Все</option>
                   <option value="server">server</option>
                   <option value="engine">engine</option>
@@ -204,32 +236,72 @@
         </div>
 
         <div id="vtables-view" hidden>
-          <div id="vtables-summary" class="stats stats-three" aria-label="Статистика VTable">
+          <div id="vtables-summary" class="stats stats-three" aria-label="Статистика VTable" data-i18n-aria="vtablesSummaryAria">
             <div class="stat-card">
-              <span class="stat-label">Всего офсетов</span>
+              <span class="stat-label" data-i18n="vtableTotalOffsets">Всего офсетов</span>
               <strong id="vtable-stat-methods" class="stat-value">232 270</strong>
-              <span class="stat-hint">виртуальных методов</span>
+              <span class="stat-hint" data-i18n="vtableVirtualMethodsHint">виртуальных методов</span>
             </div>
             <div class="stat-card">
-              <span class="stat-label">Классов C++</span>
+              <span class="stat-label" data-i18n="vtableClassesLabel">Классов C++</span>
               <strong id="vtable-stat-classes" class="stat-value">3 391</strong>
-              <span class="stat-hint">с виртуальными таблицами</span>
+              <span class="stat-hint" data-i18n="vtableClassesHint">с виртуальными таблицами</span>
             </div>
             <div class="stat-card">
-              <span class="stat-label">Библиотеки</span>
+              <span class="stat-label" data-i18n="vtableLibrariesLabel">Библиотеки</span>
               <strong class="stat-value">server / engine</strong>
-              <span class="stat-hint">Linux ELF</span>
+              <span class="stat-hint" data-i18n="vtableLibrariesHint">сервер и движок Linux</span>
             </div>
           </div>
           <div class="results-heading">
             <div>
-              <h2 id="vtable-view-title">Таблица VTable</h2>
-              <p id="vtable-view-status" class="muted">Выберите класс или воспользуйтесь поиском</p>
+              <h2 id="vtable-view-title" data-i18n="vtableTableTitle">Таблица VTable</h2>
+              <p id="vtable-view-status" class="muted" data-i18n="vtableStatusDefault">Выберите класс или воспользуйтесь поиском</p>
             </div>
           </div>
           <div id="vtables-container" class="vtables-table-wrap">
-            <div class="state"><span>Загрузка данных VTable…</span></div>
+            <div class="state"><span data-i18n="loadingIndex">Загрузка данных VTable…</span></div>
           </div>
+          <div id="vtable-sentinel" class="sentinel" aria-hidden="true"></div>
+        </div>
+
+        <div id="global-view" hidden>
+          <div id="global-summary" class="stats stats-three" aria-label="Статистика общего поиска" data-i18n-aria="globalSummaryAria">
+            <div class="stat-card">
+              <span class="stat-label" data-i18n="globalFoundSignaturesLabel">Сигнатур найдено</span>
+              <strong id="global-stat-sigs" class="stat-value">0</strong>
+              <span class="stat-hint" data-i18n="globalFoundSigsHint">ELF / байт-паттерны</span>
+            </div>
+            <div class="stat-card">
+              <span class="stat-label" data-i18n="globalFoundVtablesLabel">VTable офсетов</span>
+              <strong id="global-stat-vtables" class="stat-value">0</strong>
+              <span class="stat-hint" data-i18n="globalFoundVtablesHint">виртуальных методов</span>
+            </div>
+            <div class="stat-card">
+              <span class="stat-label" data-i18n="globalFoundClassesLabel">Классов C++</span>
+              <strong id="global-stat-classes" class="stat-value">0</strong>
+              <span class="stat-hint" data-i18n="globalFoundClassesHint">с совпадениями</span>
+            </div>
+          </div>
+
+          <div class="results-heading">
+            <div>
+              <h2 data-i18n="resultsTitle">Результаты</h2>
+              <p id="global-status" class="muted" role="status" aria-live="polite" data-i18n="globalStatusPrompt">Введите запрос для поиска по всем данным…</p>
+            </div>
+            <button id="global-reset" class="button button-ghost" type="button" data-i18n="reset">Сбросить</button>
+          </div>
+          <div id="global-results" class="results" aria-live="polite"></div>
+          <div id="global-empty" class="state" hidden>
+            <strong data-i18n="noResults">Ничего не найдено</strong>
+            <span data-i18n="noResultsHint">Попробуйте сократить запрос или изменить фильтры.</span>
+          </div>
+          <div id="global-loading" class="state" aria-busy="true" hidden>
+            <span class="skeleton skeleton-wide"></span>
+            <span class="skeleton skeleton-medium"></span>
+            <span class="skeleton skeleton-wide"></span>
+          </div>
+          <div id="global-sentinel" class="sentinel" aria-hidden="true"></div>
         </div>
       </section>
     </main>

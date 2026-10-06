@@ -29,7 +29,27 @@ const translations = {
     catalogTitle: "Список сигнатур",
     tabSignatures: "Сигнатуры",
     tabVtables: "VTable",
+    tabGlobalSearch: "Общий поиск",
+    globalBadge: "Везде",
+    globalQueryLabel: "Общий поиск по сигнатурам, классам, методам и офсетам",
+    searchGlobalPlaceholder: "Например: TakeDamage, CRestore, AddEmptyMesh или 12",
+    categoryLabel: "Категория",
+    globalTypeAll: "Все результаты (сигнатуры и VTable)",
+    globalTypeSignatures: "Только сигнатуры",
+    globalTypeVtables: "Только VTable офсеты",
+    globalFoundSignaturesLabel: "Сигнатур найдено",
+    globalFoundSigsHint: "ELF / байт-паттерны",
+    globalFoundVtablesLabel: "VTable офсетов",
+    globalFoundVtablesHint: "виртуальных методов",
+    globalFoundClassesLabel: "Классов C++",
+    globalFoundClassesHint: "с совпадениями",
+    globalStatusPrompt: "Введите запрос для поиска по всем данным…",
+    globalFoundStatus: "Найдено: {sigs} сигнатур, {vtables} офсетов ({classes} классов) · показано {shown}",
+    globalFiltersAria: "Фильтры общего поиска",
+    globalSummaryAria: "Статистика общего поиска",
     vtablesMetaLabel: "офсетов",
+    engineLibraryLabel: "engine",
+    serverLibraryLabel: "server",
     searchTitle: "Поиск и фильтры",
     queryLabel: "Название или сигнатура",
     queryPlaceholder: "Например: AddEmptyMesh или FindEntityByClassname",
@@ -45,10 +65,33 @@ const translations = {
     vtablesButton: "Таблица VTable (Офсеты)",
     vtablesTitle: "Таблица виртуальных оффсетов VTable (L / W)",
     searchVtablePlaceholder: "Поиск по классу (напр. CRestore, CBaseEntity) или методу...",
-    vtableClassSelect: "Выберите класс:",
+    vtableClassSelect: "Класс C++:",
     allLibraries: "Все библиотеки",
     vtableMethodCol: "Функция / Метод",
     copySnippet: "GameData",
+    vtableTotalOffsets: "Всего офсетов",
+    vtableVirtualMethodsHint: "виртуальных методов",
+    vtableClassesLabel: "Классов C++",
+    vtableClassesHint: "с виртуальными таблицами",
+    vtableLibrariesLabel: "Библиотеки",
+    vtableLibrariesHint: "сервер и движок Linux",
+    vtableTableTitle: "Таблица VTable",
+    vtableStatusDefault: "Выберите класс или воспользуйтесь поиском",
+    vtableFiltersAria: "Фильтры VTable",
+    vtablesSummaryAria: "Статистика VTable",
+    vtableShowingStatus: "Показано {shown} из {total} методов / офсетов",
+    vtableNoMethods: "В этом классе не найдено методов, соответствующих запросу.",
+    vtableClassNotFound: "Класс \"{name}\" не найден.",
+    vtableLoadError: "Не удалось загрузить данные VTable.",
+    vtableHeaderL: "L (Linux)",
+    vtableHeaderW: "W (Windows)",
+    vtableTooltipL: "Linux слот виртуальной таблицы (Itanium C++ ABI)",
+    vtableTooltipW: "Windows слот виртуальной таблицы (MSVC C++ ABI)",
+    vtableAnonNamespace: "анонимный namespace",
+    openInVTableTab: "Открыть класс в VTable",
+    changelogSignaturesBadge: "Сигнатур: {count}",
+    changelogVtablesBadge: "VTable: {count}",
+    changelogClassesBadge: "Классов: {count}",
     oldOffsetLabel: "Было",
     newOffsetLabel: "Стало",
     diffLabel: "Сдвиг",
@@ -117,7 +160,27 @@ const translations = {
     catalogTitle: "Signature list",
     tabSignatures: "Signatures",
     tabVtables: "VTable",
+    tabGlobalSearch: "Global Search",
+    globalBadge: "All",
+    globalQueryLabel: "Unified search across signatures, classes, methods, and offsets",
+    searchGlobalPlaceholder: "For example: TakeDamage, CRestore, AddEmptyMesh or 12",
+    categoryLabel: "Category",
+    globalTypeAll: "All results (signatures & VTable)",
+    globalTypeSignatures: "Signatures only",
+    globalTypeVtables: "VTable offsets only",
+    globalFoundSignaturesLabel: "Signatures found",
+    globalFoundSigsHint: "ELF / byte-patterns",
+    globalFoundVtablesLabel: "VTable offsets",
+    globalFoundVtablesHint: "virtual methods",
+    globalFoundClassesLabel: "C++ classes",
+    globalFoundClassesHint: "matching query",
+    globalStatusPrompt: "Enter search query to search across all data…",
+    globalFoundStatus: "Found: {sigs} signatures, {vtables} offsets ({classes} classes) · showing {shown}",
+    globalFiltersAria: "Global search filters",
+    globalSummaryAria: "Global search statistics",
     vtablesMetaLabel: "offsets",
+    engineLibraryLabel: "engine",
+    serverLibraryLabel: "server",
     searchTitle: "Search and filters",
     queryLabel: "Name or signature",
     queryPlaceholder: "For example: AddEmptyMesh or FindEntityByClassname",
@@ -133,10 +196,33 @@ const translations = {
     vtablesButton: "VTable Offsets",
     vtablesTitle: "Virtual Method Table Offsets (L / W)",
     searchVtablePlaceholder: "Search class (e.g. CRestore, CBaseEntity) or method...",
-    vtableClassSelect: "Select class:",
+    vtableClassSelect: "C++ Class:",
     allLibraries: "All libraries",
     vtableMethodCol: "Function / Method",
     copySnippet: "GameData",
+    vtableTotalOffsets: "Total offsets",
+    vtableVirtualMethodsHint: "virtual methods",
+    vtableClassesLabel: "C++ classes",
+    vtableClassesHint: "with virtual method tables",
+    vtableLibrariesLabel: "Libraries",
+    vtableLibrariesHint: "Linux server & engine",
+    vtableTableTitle: "VTable Table",
+    vtableStatusDefault: "Select a class or use search",
+    vtableFiltersAria: "VTable filters",
+    vtablesSummaryAria: "VTable statistics",
+    vtableShowingStatus: "Showing {shown} of {total} methods / offsets",
+    vtableNoMethods: "No methods matching query found in this class.",
+    vtableClassNotFound: "Class \"{name}\" not found.",
+    vtableLoadError: "Failed to load VTable data.",
+    vtableHeaderL: "L (Linux)",
+    vtableHeaderW: "W (Windows)",
+    vtableTooltipL: "Linux vtable slot index (Itanium C++ ABI)",
+    vtableTooltipW: "Windows vtable slot index (MSVC C++ ABI)",
+    vtableAnonNamespace: "anon namespace",
+    openInVTableTab: "Open class in VTable",
+    changelogSignaturesBadge: "Signatures: {count}",
+    changelogVtablesBadge: "VTable: {count}",
+    changelogClassesBadge: "Classes: {count}",
     oldOffsetLabel: "Previous",
     newOffsetLabel: "Current",
     diffLabel: "Shift",
@@ -684,7 +770,7 @@ function init() {
       loading.hidden = true;
       applyFilters();
       initChangelog();
-      initCatalogTabs(selectedGame);
+      initCatalogTabs(selectedGame, state, makeResultCard);
     })
     .catch((loadError) => {
       loading.hidden = true;
@@ -692,7 +778,7 @@ function init() {
       error.hidden = false;
       status.textContent = translate("loadErrorStatus");
       initChangelog();
-      initCatalogTabs(selectedGame);
+      initCatalogTabs(selectedGame, state, makeResultCard);
     });
 }
 
@@ -740,9 +826,9 @@ function initChangelog() {
       if (update.stats) {
         if (update.stats.signaturesCount || update.stats.totalSignatures) {
           statsRow.append(
-            element("span", "badge badge-accent", `Сигнатур: ${formatNumber(update.stats.signaturesCount || update.stats.totalSignatures)}`),
-            element("span", "badge badge-library", `VTable: ${formatNumber(update.stats.vtablesCount || update.stats.vtablesMethods || 232270)}`),
-            element("span", "badge badge-warning", `Классов: ${formatNumber(update.stats.classesCount || update.stats.vtablesClasses || 3391)}`),
+            element("span", "badge badge-accent", translate("changelogSignaturesBadge", { count: formatNumber(update.stats.signaturesCount || update.stats.totalSignatures) })),
+            element("span", "badge badge-library", translate("changelogVtablesBadge", { count: formatNumber(update.stats.vtablesCount || update.stats.vtablesMethods || 232270) })),
+            element("span", "badge badge-warning", translate("changelogClassesBadge", { count: formatNumber(update.stats.classesCount || update.stats.vtablesClasses || 3391) })),
           );
         } else if (update.stats.totalChanged) {
           statsRow.append(
@@ -860,26 +946,48 @@ function initChangelog() {
   loadUpdates();
 }
 
-function initCatalogTabs(selectedGame) {
+function initCatalogTabs(selectedGame, state, makeResultCard) {
   const tabSignatures = document.querySelector("#tab-signatures");
   const tabVtables = document.querySelector("#tab-vtables");
+  const tabGlobal = document.querySelector("#tab-global");
+
   const signaturesControls = document.querySelector("#signatures-search-controls");
   const vtablesControls = document.querySelector("#vtables-search-controls");
+  const globalControls = document.querySelector("#global-search-controls");
+
   const signaturesView = document.querySelector("#signatures-view");
   const vtablesView = document.querySelector("#vtables-view");
+  const globalView = document.querySelector("#global-view");
+
   const vtableQueryInput = document.querySelector("#vtable-query");
   const vtableClassSelect = document.querySelector("#vtable-class");
   const vtableSourceSelect = document.querySelector("#vtable-source");
   const vtablesContainer = document.querySelector("#vtables-container");
   const vtableViewTitle = document.querySelector("#vtable-view-title");
   const vtableViewStatus = document.querySelector("#vtable-view-status");
+  const vtableSentinel = document.querySelector("#vtable-sentinel");
+
+  const globalQueryInput = document.querySelector("#global-query");
+  const globalTypeSelect = document.querySelector("#global-type");
+  const globalSourceSelect = document.querySelector("#global-source");
+  const globalStatSigs = document.querySelector("#global-stat-sigs");
+  const globalStatVtables = document.querySelector("#global-stat-vtables");
+  const globalStatClasses = document.querySelector("#global-stat-classes");
+  const globalStatus = document.querySelector("#global-status");
+  const globalResetBtn = document.querySelector("#global-reset");
+  const globalResults = document.querySelector("#global-results");
+  const globalEmpty = document.querySelector("#global-empty");
+  const globalLoading = document.querySelector("#global-loading");
+  const globalSentinel = document.querySelector("#global-sentinel");
 
   if (!tabSignatures || !tabVtables) return;
 
   if (selectedGame !== "tf2") {
     tabVtables.hidden = true;
+    if (tabGlobal) tabGlobal.hidden = true;
   } else {
     tabVtables.hidden = false;
+    if (tabGlobal) tabGlobal.hidden = false;
   }
 
   let activeTab = "signatures";
@@ -887,25 +995,64 @@ function initCatalogTabs(selectedGame) {
   let loadingPromise = null;
   let currentVTableClass = "CRestore";
 
+  // VTable dynamic loading state
+  const VTABLE_PAGE_SIZE = 50;
+  let vtableFilteredMethods = [];
+  let vtableRenderedCount = 0;
+  let vtableCurrentTbody = null;
+
+  // Global search dynamic loading state
+  const GLOBAL_PAGE_SIZE = 50;
+  let globalAllMatches = [];
+  let globalRenderedCount = 0;
+  let globalMatchedSigs = [];
+  let globalMatchedVtables = [];
+  let globalMatchedClasses = new Set();
+
+  function formatClassName(name) {
+    if (name.startsWith("(anonymous namespace)::")) {
+      return `${name.replace("(anonymous namespace)::", "")} (${translate("vtableAnonNamespace")})`;
+    }
+    return name;
+  }
+
+  function getMethodShortName(name) {
+    const m = name.match(/::([~a-zA-Z0-9_]+)\(/);
+    return m ? m[1] : name;
+  }
+
   function switchTab(newTab) {
     activeTab = newTab;
     tabSignatures.classList.toggle("active", activeTab === "signatures");
     tabSignatures.setAttribute("aria-selected", activeTab === "signatures");
     tabVtables.classList.toggle("active", activeTab === "vtables");
     tabVtables.setAttribute("aria-selected", activeTab === "vtables");
+    if (tabGlobal) {
+      tabGlobal.classList.toggle("active", activeTab === "global");
+      tabGlobal.setAttribute("aria-selected", activeTab === "global");
+    }
 
     if (signaturesControls) signaturesControls.hidden = activeTab !== "signatures";
     if (vtablesControls) vtablesControls.hidden = activeTab !== "vtables";
+    if (globalControls) globalControls.hidden = activeTab !== "global";
+
     if (signaturesView) signaturesView.hidden = activeTab !== "signatures";
     if (vtablesView) vtablesView.hidden = activeTab !== "vtables";
+    if (globalView) globalView.hidden = activeTab !== "global";
 
     if (activeTab === "vtables") {
       ensureVTablesLoaded();
+    } else if (activeTab === "global") {
+      ensureVTablesLoaded().then(() => {
+        runGlobalSearch();
+        globalQueryInput?.focus();
+      });
     }
   }
 
   tabSignatures.addEventListener("click", () => switchTab("signatures"));
   tabVtables.addEventListener("click", () => switchTab("vtables"));
+  tabGlobal?.addEventListener("click", () => switchTab("global"));
 
   async function loadVTablesData() {
     if (vtablesData) return vtablesData;
@@ -932,7 +1079,7 @@ function initCatalogTabs(selectedGame) {
       await loadVTablesData();
       if (!vtablesData) {
         if (vtablesContainer) {
-          vtablesContainer.replaceChildren(element("div", "state state-error", "Не удалось загрузить данные VTable."));
+          vtablesContainer.replaceChildren(element("div", "state state-error", translate("vtableLoadError")));
         }
         return;
       }
@@ -940,11 +1087,6 @@ function initCatalogTabs(selectedGame) {
 
     updateVTableClassSelect();
     renderCurrentVTable();
-  }
-
-  function getMethodShortName(name) {
-    const m = name.match(/::([~a-zA-Z0-9_]+)\(/);
-    return m ? m[1] : name;
   }
 
   function updateVTableClassSelect() {
@@ -959,10 +1101,10 @@ function initCatalogTabs(selectedGame) {
     });
 
     vtableClassSelect.replaceChildren();
-    filtered.slice(0, 1000).forEach((cls) => {
+    filtered.forEach((cls) => {
       const opt = document.createElement("option");
       opt.value = cls;
-      opt.textContent = `${cls} (${vtablesData.classes[cls].methods.length})`;
+      opt.textContent = `${formatClassName(cls)} (${vtablesData.classes[cls].methods.length})`;
       if (cls === currentVTableClass) opt.selected = true;
       vtableClassSelect.append(opt);
     });
@@ -973,47 +1115,16 @@ function initCatalogTabs(selectedGame) {
     }
   }
 
-  function renderCurrentVTable() {
-    if (!vtablesContainer || !vtablesData?.classes) return;
-    const classInfo = vtablesData.classes[currentVTableClass];
-    if (!classInfo) {
-      vtablesContainer.replaceChildren(element("div", "state", `Класс "${currentVTableClass}" не найден.`));
+  function renderMoreVTableRows() {
+    if (!vtableCurrentTbody || vtableRenderedCount >= vtableFilteredMethods.length) {
+      if (vtableSentinel) vtableSentinel.hidden = true;
       return;
     }
 
-    const filterText = (vtableQueryInput?.value || "").trim().toLowerCase();
+    const chunk = vtableFilteredMethods.slice(vtableRenderedCount, vtableRenderedCount + VTABLE_PAGE_SIZE);
+    const fragment = document.createDocumentFragment();
 
-    if (vtableViewTitle) {
-      vtableViewTitle.textContent = `${currentVTableClass} (${classInfo.library})`;
-    }
-    if (vtableViewStatus) {
-      vtableViewStatus.textContent = `${formatNumber(classInfo.methods.length)} виртуальных методов / офсетов`;
-    }
-
-    const table = element("table", "vtables-table");
-    const thead = element("thead");
-    const headRow = element("tr");
-    headRow.append(
-      element("th", "vtables-col-l", "L"),
-      element("th", "vtables-col-w", "W"),
-      element("th", "vtables-col-func", translate("vtableMethodCol")),
-      element("th", "vtables-col-action", "GameData"),
-    );
-    thead.append(headRow);
-    table.append(thead);
-
-    const tbody = element("tbody");
-    let matchedCount = 0;
-
-    classInfo.methods.forEach(([wIndex, fullName], lIndex) => {
-      if (filterText) {
-        const matchesName = fullName.toLowerCase().includes(filterText);
-        const matchesL = String(lIndex) === filterText;
-        const matchesW = wIndex !== null && String(wIndex) === filterText;
-        if (!matchesName && !matchesL && !matchesW) return;
-      }
-
-      matchedCount++;
+    chunk.forEach(({ lIndex, wIndex, fullName }) => {
       const tr = element("tr");
       const tdL = element("td", "vtables-col-l", String(lIndex));
       const tdW = element("td", "vtables-col-w", wIndex !== null ? String(wIndex) : "—");
@@ -1036,19 +1147,281 @@ function initCatalogTabs(selectedGame) {
       tdAction.append(copyBtn);
 
       tr.append(tdL, tdW, tdFunc, tdAction);
-      tbody.append(tr);
+      fragment.append(tr);
     });
 
-    if (matchedCount === 0) {
-      const tr = element("tr");
-      const td = element("td", "muted", "В этом классе не найдено методов, соответствующих запросу.");
-      td.colSpan = 4;
-      tr.append(td);
-      tbody.append(tr);
+    vtableCurrentTbody.append(fragment);
+    vtableRenderedCount += chunk.length;
+
+    if (vtableViewStatus) {
+      vtableViewStatus.textContent = translate("vtableShowingStatus", {
+        shown: formatNumber(vtableRenderedCount),
+        total: formatNumber(vtableFilteredMethods.length),
+      });
     }
 
-    table.append(tbody);
+    if (vtableSentinel) {
+      vtableSentinel.hidden = vtableRenderedCount >= vtableFilteredMethods.length;
+    }
+  }
+
+  if (vtableSentinel) {
+    const vtableObserver = new IntersectionObserver((entries) => {
+      if (entries.some((entry) => entry.isIntersecting)) {
+        renderMoreVTableRows();
+      }
+    }, { rootMargin: "300px" });
+    vtableObserver.observe(vtableSentinel);
+  }
+
+  function renderCurrentVTable() {
+    if (!vtablesContainer || !vtablesData?.classes) return;
+    const classInfo = vtablesData.classes[currentVTableClass];
+    if (!classInfo) {
+      vtablesContainer.replaceChildren(element("div", "state", translate("vtableClassNotFound", { name: currentVTableClass })));
+      if (vtableSentinel) vtableSentinel.hidden = true;
+      return;
+    }
+
+    const filterText = (vtableQueryInput?.value || "").trim().toLowerCase();
+
+    if (vtableViewTitle) {
+      vtableViewTitle.textContent = `${formatClassName(currentVTableClass)} (${classInfo.library})`;
+    }
+
+    vtableFilteredMethods = [];
+    classInfo.methods.forEach(([wIndex, fullName], lIndex) => {
+      if (filterText) {
+        const matchesName = fullName.toLowerCase().includes(filterText);
+        const matchesL = String(lIndex) === filterText;
+        const matchesW = wIndex !== null && String(wIndex) === filterText;
+        if (!matchesName && !matchesL && !matchesW) return;
+      }
+      vtableFilteredMethods.push({ lIndex, wIndex, fullName });
+    });
+
+    vtableRenderedCount = 0;
+
+    const table = element("table", "vtables-table");
+    const thead = element("thead");
+    const headRow = element("tr");
+    const thL = element("th", "vtables-col-l", translate("vtableHeaderL"));
+    thL.title = translate("vtableTooltipL");
+    const thW = element("th", "vtables-col-w", translate("vtableHeaderW"));
+    thW.title = translate("vtableTooltipW");
+    headRow.append(
+      thL,
+      thW,
+      element("th", "vtables-col-func", translate("vtableMethodCol")),
+      element("th", "vtables-col-action", "GameData"),
+    );
+    thead.append(headRow);
+    table.append(thead);
+
+    vtableCurrentTbody = element("tbody");
+
+    if (vtableFilteredMethods.length === 0) {
+      const tr = element("tr");
+      const td = element("td", "muted", translate("vtableNoMethods"));
+      td.colSpan = 4;
+      tr.append(td);
+      vtableCurrentTbody.append(tr);
+      if (vtableViewStatus) {
+        vtableViewStatus.textContent = translate("vtableShowingStatus", { shown: 0, total: 0 });
+      }
+      if (vtableSentinel) vtableSentinel.hidden = true;
+    } else {
+      renderMoreVTableRows();
+    }
+
+    table.append(vtableCurrentTbody);
     vtablesContainer.replaceChildren(table);
+  }
+
+  function makeVTableResultCard(item) {
+    const card = element("article", "result-card result-card-vtable");
+    const header = element("header", "result-header");
+
+    const badges = element("div", "result-badges");
+    badges.append(
+      element("span", "badge badge-accent", "VTable"),
+      element("span", "badge badge-library", item.library),
+    );
+
+    const nameBtn = element("button", "link-button", formatClassName(item.className));
+    nameBtn.type = "button";
+    nameBtn.title = translate("openInVTableTab");
+    nameBtn.style.fontWeight = "750";
+    nameBtn.addEventListener("click", () => {
+      currentVTableClass = item.className;
+      if (vtableClassSelect) vtableClassSelect.value = item.className;
+      if (vtableQueryInput) vtableQueryInput.value = "";
+      switchTab("vtables");
+      renderCurrentVTable();
+    });
+
+    header.append(badges, nameBtn);
+
+    const codeWrap = element("div", "code-row");
+    const code = element("code", "vtable-method-name", item.fullName);
+    codeWrap.append(code);
+
+    const footer = element("div", "vtable-meta-pills");
+    const pillL = element("span", "vtable-pill vtable-pill-l", `L: ${item.lIndex}`);
+    pillL.title = translate("vtableTooltipL");
+    const pillW = element("span", "vtable-pill vtable-pill-w", `W: ${item.wIndex !== null ? item.wIndex : "—"}`);
+    pillW.title = translate("vtableTooltipW");
+
+    const copyBtn = element("button", "btn-sm-action", "GameData");
+    copyBtn.type = "button";
+    copyBtn.title = "Скопировать блок для SourceMod GameData";
+    copyBtn.addEventListener("click", async () => {
+      const shortName = getMethodShortName(item.fullName);
+      const snippet = `"${shortName}"\n{\n    "windows"    "${item.wIndex !== null ? item.wIndex : "0"}"\n    "linux"      "${item.lIndex}"\n}`;
+      const ok = await copyText(snippet);
+      const orig = copyBtn.textContent;
+      copyBtn.textContent = ok ? "✓ OK" : "ERR";
+      setTimeout(() => { copyBtn.textContent = orig; }, 1200);
+    });
+
+    const openBtn = element("button", "btn-sm-action", translate("openInVTableTab"));
+    openBtn.type = "button";
+    openBtn.addEventListener("click", () => {
+      currentVTableClass = item.className;
+      if (vtableClassSelect) vtableClassSelect.value = item.className;
+      if (vtableQueryInput) vtableQueryInput.value = item.fullName;
+      switchTab("vtables");
+      renderCurrentVTable();
+    });
+
+    footer.append(pillL, pillW, copyBtn, openBtn);
+    card.append(header, codeWrap, footer);
+    return card;
+  }
+
+  function renderMoreGlobalItems() {
+    if (!globalResults || globalRenderedCount >= globalAllMatches.length) {
+      if (globalSentinel) globalSentinel.hidden = true;
+      return;
+    }
+
+    const chunk = globalAllMatches.slice(globalRenderedCount, globalRenderedCount + GLOBAL_PAGE_SIZE);
+    const fragment = document.createDocumentFragment();
+
+    chunk.forEach((item) => {
+      if (item.kind === "signature") {
+        if (typeof makeResultCard === "function") {
+          fragment.append(makeResultCard(item.data, selectedGame));
+        }
+      } else if (item.kind === "vtable") {
+        fragment.append(makeVTableResultCard(item));
+      }
+    });
+
+    globalResults.append(fragment);
+    globalRenderedCount += chunk.length;
+
+    if (globalStatus) {
+      globalStatus.textContent = translate("globalFoundStatus", {
+        sigs: formatNumber(globalMatchedSigs.length),
+        vtables: formatNumber(globalMatchedVtables.length),
+        classes: formatNumber(globalMatchedClasses.size),
+        shown: formatNumber(globalRenderedCount),
+      });
+    }
+
+    if (globalSentinel) {
+      globalSentinel.hidden = globalRenderedCount >= globalAllMatches.length;
+    }
+  }
+
+  if (globalSentinel) {
+    const globalObserver = new IntersectionObserver((entries) => {
+      if (entries.some((entry) => entry.isIntersecting)) {
+        renderMoreGlobalItems();
+      }
+    }, { rootMargin: "300px" });
+    globalObserver.observe(globalSentinel);
+  }
+
+  function runGlobalSearch() {
+    if (!globalResults) return;
+    const q = (globalQueryInput?.value || "").trim().toLowerCase();
+    const typeFilter = globalTypeSelect?.value || "all";
+    const sourceFilter = globalSourceSelect?.value || "all";
+
+    if (!q) {
+      globalResults.replaceChildren();
+      if (globalStatus) globalStatus.textContent = translate("globalStatusPrompt");
+      if (globalStatSigs) globalStatSigs.textContent = "0";
+      if (globalStatVtables) globalStatVtables.textContent = "0";
+      if (globalStatClasses) globalStatClasses.textContent = "0";
+      if (globalEmpty) globalEmpty.hidden = true;
+      if (globalSentinel) globalSentinel.hidden = true;
+      globalAllMatches = [];
+      globalRenderedCount = 0;
+      return;
+    }
+
+    globalMatchedSigs = [];
+    globalMatchedVtables = [];
+    globalMatchedClasses = new Set();
+
+    if (typeFilter === "all" || typeFilter === "signatures") {
+      const sigEntries = state?.index?.entries || [];
+      sigEntries.forEach((entry) => {
+        if (sourceFilter !== "all" && entry.library !== sourceFilter) return;
+        const nameMatch = entry.name.toLowerCase().includes(q);
+        const lMatch = entry.linux?.value?.toLowerCase().includes(q) || (entry.linux?.offset && entry.linux.offset.toLowerCase().includes(q));
+        const l64Match = entry.linux64?.value?.toLowerCase().includes(q) || (entry.linux64?.offset && entry.linux64.offset.toLowerCase().includes(q));
+        if (nameMatch || lMatch || l64Match) {
+          globalMatchedSigs.push({ kind: "signature", data: entry });
+        }
+      });
+    }
+
+    if ((typeFilter === "all" || typeFilter === "vtables") && vtablesData?.classes) {
+      const classes = vtablesData.classes;
+      for (const [className, classInfo] of Object.entries(classes)) {
+        if (sourceFilter !== "all" && classInfo.library !== sourceFilter) continue;
+        const classMatch = className.toLowerCase().includes(q);
+
+        classInfo.methods.forEach(([wIndex, fullName], lIndex) => {
+          const methodMatch = fullName.toLowerCase().includes(q);
+          const lIndexMatch = String(lIndex) === q;
+          const wIndexMatch = wIndex !== null && String(wIndex) === q;
+
+          if (classMatch || methodMatch || lIndexMatch || wIndexMatch) {
+            globalMatchedClasses.add(className);
+            globalMatchedVtables.push({
+              kind: "vtable",
+              className,
+              library: classInfo.library,
+              fullName,
+              lIndex,
+              wIndex,
+            });
+          }
+        });
+      }
+    }
+
+    if (globalStatSigs) globalStatSigs.textContent = formatNumber(globalMatchedSigs.length);
+    if (globalStatVtables) globalStatVtables.textContent = formatNumber(globalMatchedVtables.length);
+    if (globalStatClasses) globalStatClasses.textContent = formatNumber(globalMatchedClasses.size);
+
+    globalAllMatches = [...globalMatchedSigs, ...globalMatchedVtables];
+    globalRenderedCount = 0;
+    globalResults.replaceChildren();
+
+    if (globalAllMatches.length === 0) {
+      if (globalEmpty) globalEmpty.hidden = false;
+      if (globalStatus) globalStatus.textContent = translate("noResultsStatus");
+      if (globalSentinel) globalSentinel.hidden = true;
+    } else {
+      if (globalEmpty) globalEmpty.hidden = true;
+      renderMoreGlobalItems();
+    }
   }
 
   vtableClassSelect?.addEventListener("change", () => {
@@ -1065,13 +1438,26 @@ function initCatalogTabs(selectedGame) {
     const q = (vtableQueryInput.value || "").trim().toLowerCase();
     if (!vtablesData?.classes) return;
 
-    // Check if query matches another class name directly
-    const directClass = Object.keys(vtablesData.classes).find((c) => c.toLowerCase() === q);
+    const directClass = Object.keys(vtablesData.classes).find((c) => {
+      const cLow = c.toLowerCase();
+      return cLow === q || cLow.replace("(anonymous namespace)::", "") === q;
+    });
     if (directClass && directClass !== currentVTableClass) {
       currentVTableClass = directClass;
       vtableClassSelect.value = currentVTableClass;
     }
     renderCurrentVTable();
+  });
+
+  globalQueryInput?.addEventListener("input", runGlobalSearch);
+  globalTypeSelect?.addEventListener("change", runGlobalSearch);
+  globalSourceSelect?.addEventListener("change", runGlobalSearch);
+  globalResetBtn?.addEventListener("click", () => {
+    if (globalQueryInput) globalQueryInput.value = "";
+    if (globalTypeSelect) globalTypeSelect.value = "all";
+    if (globalSourceSelect) globalSourceSelect.value = "all";
+    runGlobalSearch();
+    globalQueryInput?.focus();
   });
 }
 
