@@ -4,7 +4,7 @@
 Designed to run automatically before server restarts when TF2 is updated:
 1. Reads fresh VTables and signatures from ELF binaries / repository artifacts.
 2. Checks all GameData files across target server volumes.
-3. Automatically patches changed VTable offsets (L/W) and signatures.
+3. Automatically patches changed VTable offsets (L/W) and signatures for TF2 games.
 4. Preserves UTF-8, indentation, and comments; safely creates .bak backups.
 5. Strictly enforces pterodactyl:pterodactyl file ownership.
 6. Emits detailed Discord embed JSON summary for update notifications.
@@ -31,6 +31,9 @@ DEFAULT_TARGET_UUIDS = [
     "fcb763b9-179f-4114-a7b0-7679877cc4b5",
     "e76c96db-5d25-41f5-8191-cd94f23aa45e",
 ]
+
+# Games supported for TF2 patching
+SUPPORTED_GAMES = {"tf", "tf2", "orangebox", "#default"}
 
 
 def set_ptero_ownership(path: Path) -> None:
@@ -167,7 +170,7 @@ def load_canonical_data(repo_dir: Path, mount_path: Path | None) -> tuple[dict, 
         server_bin = mount_path / "tf" / "bin" / "server_srv.so"
         engine_bin = mount_path / "bin" / "engine_srv.so"
         if server_bin.exists():
-            print("[*] Re-dumping live VTables from server_srv.so...")
+            print("[*] Checking live VTables from server_srv.so...")
             fresh_server = dump_elf_vtables(server_bin, "server")
             if fresh_server:
                 if "classes" not in vtables_data:
@@ -182,9 +185,9 @@ def load_canonical_data(repo_dir: Path, mount_path: Path | None) -> tuple[dict, 
 
     # Build fast VTable lookup dictionaries
     # 1. Exact "ClassName::MethodName" -> { "linux": int, "windows": int }
-    # 2. Short "MethodName" -> { "linux": int, "windows": int } (if unambiguous)
+    # 2. Short "MethodName" -> { "linux": int, "windows": int } (if ALL candidates share the same index)
     vtable_exact: dict[str, dict[str, int]] = {}
-    vtable_short_candidates: dict[str, list[tuple[str, dict[str, int]]]] = {}
+    vtable_short_all: dict[str, list[tuple[str, dict[str, int]]]] = {}
 
     for cls_name, cls_info in vtables_data.get("classes", {}).items():
         methods = cls_info.get("methods", [])
@@ -197,11 +200,11 @@ def load_canonical_data(repo_dir: Path, mount_path: Path | None) -> tuple[dict, 
             vtable_exact[f"{cls_name}::{short}"] = indices
             vtable_exact[f"{cls_name}::{full_sig}"] = indices
 
-            if short not in vtable_short_candidates:
-                vtable_short_candidates[short] = []
-            vtable_short_candidates[short].append((cls_name, indices))
+            if short not in vtable_short_all:
+                vtable_short_all[short] = []
+            vtable_short_all[short].append((cls_name, indices))
 
-    # Also include member offsets and sizeof
+    # Add member offsets and sizeof
     for name, item in vtables_data.get("memberOffsets", {}).items():
         indices: dict[str, int] = {}
         for p in ("linux", "windows", "linux64", "windows64"):
@@ -210,6 +213,17 @@ def load_canonical_data(repo_dir: Path, mount_path: Path | None) -> tuple[dict, 
                 indices[p] = int(val)
         if indices:
             vtable_exact[name] = indices
+
+    # Filter short names: only keep short names that have a unanimous offset across classes
+    vtable_short_safe: dict[str, dict[str, int]] = {}
+    for short, candidates in vtable_short_all.items():
+        if len(candidates) == 1:
+            vtable_short_safe[short] = candidates[0][1]
+        else:
+            # Check if all candidates share the same linux/windows indices
+            first_idx = candidates[0][1]
+            if all(c[1] == first_idx for c in candidates):
+                vtable_short_safe[short] = first_idx
 
     # Build signature lookup dictionary
     signatures_map: dict[str, dict[str, str]] = {}
@@ -239,7 +253,7 @@ def load_canonical_data(repo_dir: Path, mount_path: Path | None) -> tuple[dict, 
 
     return {
         "vtable_exact": vtable_exact,
-        "vtable_short": vtable_short_candidates,
+        "vtable_short": vtable_short_safe,
     }, signatures_map
 
 
@@ -249,7 +263,7 @@ def patch_gamedata_content(
     signatures_db: dict[str, dict[str, str]],
     file_rel_path: str,
 ) -> tuple[str, list[dict]]:
-    """Parse GameData KeyValues and patch outdated offsets and signatures."""
+    """Parse GameData KeyValues preserving game blocks, indentation, and comments."""
     vtable_exact = vtables_db["vtable_exact"]
     vtable_short = vtables_db["vtable_short"]
 
@@ -257,101 +271,103 @@ def patch_gamedata_content(
     updated_lines = list(lines)
     changes: list[dict] = []
 
-    # State tracking
-    current_section = None  # "Offsets" or "Signatures"
-    current_entry_name = None
-    section_brace_depth = 0
-    entry_brace_depth = 0
+    # Stack of blocks: [name, brace_depth]
+    # Level 1: Game name (e.g. "tf", "left4dead", etc.)
+    # Level 2: Section name (e.g. "Offsets", "Signatures")
+    # Level 3: Entry name (e.g. "CTFPlayer::GetMaxHealth")
+    current_game = None
+    current_section = None
+    current_entry = None
 
-    re_section = re.compile(r'^\s*"(Offsets|Signatures)"\s*$')
-    re_entry = re.compile(r'^\s*"([^"]+)"\s*(?:/\*.*?\*/|//.*)?$')
+    brace_depth = 0
+    game_depth = -1
+    section_depth = -1
+    entry_depth = -1
+
+    re_block_header = re.compile(r'^\s*"([^"]+)"\s*(?:/\*.*?\*/|//.*)?$')
     re_prop = re.compile(r'^(\s*)"(windows|linux|windows64|linux64)"\s+"([^"]*)"(.*)$')
 
     for idx, line in enumerate(lines):
-        clean_line = line.strip()
+        clean = line.strip()
 
-        # Track braces outside quotes
-        brace_opens = clean_line.count("{")
-        brace_closes = clean_line.count("}")
+        # Handle braces and block transitions
+        opens = clean.count("{")
+        closes = clean.count("}")
 
-        if current_section is None:
-            m_sec = re_section.match(clean_line)
-            if m_sec:
-                current_section = m_sec.group(1)
-                section_brace_depth = 0
-            continue
-
-        if "{" in clean_line:
-            section_brace_depth += brace_opens
-        if "}" in clean_line:
-            section_brace_depth -= brace_closes
-            if section_brace_depth <= 0:
+        if opens > 0:
+            brace_depth += opens
+        if closes > 0:
+            brace_depth -= closes
+            if entry_depth >= 0 and brace_depth < entry_depth:
+                current_entry = None
+                entry_depth = -1
+            if section_depth >= 0 and brace_depth < section_depth:
                 current_section = None
-                current_entry_name = None
-                continue
+                section_depth = -1
+            if game_depth >= 0 and brace_depth < game_depth:
+                current_game = None
+                game_depth = -1
 
-        # Look for entry names inside section
-        if current_entry_name is None:
-            m_ent = re_entry.match(clean_line)
-            if m_ent and not clean_line.startswith(("{", "}")):
-                candidate = m_ent.group(1)
-                if candidate not in ("Offsets", "Signatures", "Games", "tf", "#default"):
-                    current_entry_name = candidate
-                    entry_brace_depth = 0
-            continue
+        # Check for block headers
+        m_hdr = re_block_header.match(clean)
+        if m_hdr and not clean.startswith(("{", "}")):
+            name = m_hdr.group(1)
 
-        if "{" in clean_line:
-            entry_brace_depth += brace_opens
-        if "}" in clean_line:
-            entry_brace_depth -= brace_closes
-            if entry_brace_depth <= 0:
-                current_entry_name = None
-                continue
+            # Determine what block this is based on current state
+            if current_game is None:
+                if name.lower() != "games":
+                    current_game = name.lower()
+                    game_depth = brace_depth + (1 if "{" in clean else 0)
+            elif current_section is None:
+                if name in ("Offsets", "Signatures"):
+                    current_section = name
+                    section_depth = brace_depth + (1 if "{" in clean else 0)
+                elif current_game not in SUPPORTED_GAMES and name.lower() in SUPPORTED_GAMES:
+                    current_game = name.lower()
+                    game_depth = brace_depth + (1 if "{" in clean else 0)
+            elif current_entry is None:
+                current_entry = name
+                entry_depth = brace_depth + (1 if "{" in clean else 0)
 
-        # Inside an entry in Offsets or Signatures: check properties
-        m_prop = re_prop.match(line)
-        if m_prop and current_entry_name:
-            indent, prop_name, old_val, suffix = m_prop.groups()
+        # Check properties inside an entry
+        if current_entry and current_section and (current_game is None or current_game in SUPPORTED_GAMES):
+            m_prop = re_prop.match(line)
+            if m_prop:
+                indent, prop_name, old_val, suffix = m_prop.groups()
 
-            if current_section == "Offsets":
-                target_offset = None
-                # 1. Exact match
-                if current_entry_name in vtable_exact and prop_name in vtable_exact[current_entry_name]:
-                    target_offset = vtable_exact[current_entry_name][prop_name]
-                # 2. Short name match if unique
-                elif current_entry_name in vtable_short:
-                    candidates = vtable_short[current_entry_name]
-                    if len(candidates) == 1 and prop_name in candidates[0][1]:
-                        target_offset = candidates[0][1][prop_name]
+                if current_section == "Offsets":
+                    target_offset = None
+                    if current_entry in vtable_exact and prop_name in vtable_exact[current_entry]:
+                        target_offset = vtable_exact[current_entry][prop_name]
+                    elif current_entry in vtable_short and prop_name in vtable_short[current_entry]:
+                        target_offset = vtable_short[current_entry][prop_name]
 
-                if target_offset is not None and str(target_offset) != old_val:
-                    new_line = f'{indent}"{prop_name}"\t\t"{target_offset}"{suffix}\n'
-                    updated_lines[idx] = new_line
-                    changes.append({
-                        "file": file_rel_path,
-                        "type": "offset",
-                        "entry": current_entry_name,
-                        "prop": prop_name,
-                        "old": old_val,
-                        "new": str(target_offset),
-                    })
-
-            elif current_section == "Signatures":
-                if current_entry_name in signatures_db and prop_name in signatures_db[current_entry_name]:
-                    target_sig = signatures_db[current_entry_name][prop_name]
-                    # Only update if old is a mangled symbol or byte pattern that changed
-                    if target_sig and target_sig != old_val:
-                        # Avoid replacing if old is already valid byte pattern and target is same
-                        new_line = f'{indent}"{prop_name}"\t\t"{target_sig}"{suffix}\n'
+                    if target_offset is not None and str(target_offset) != old_val:
+                        new_line = f'{indent}"{prop_name}"\t\t"{target_offset}"{suffix}\n'
                         updated_lines[idx] = new_line
                         changes.append({
                             "file": file_rel_path,
-                            "type": "signature",
-                            "entry": current_entry_name,
+                            "type": "offset",
+                            "entry": current_entry,
                             "prop": prop_name,
                             "old": old_val,
-                            "new": target_sig,
+                            "new": str(target_offset),
                         })
+
+                elif current_section == "Signatures":
+                    if current_entry in signatures_db and prop_name in signatures_db[current_entry]:
+                        target_sig = signatures_db[current_entry][prop_name]
+                        if target_sig and target_sig != old_val:
+                            new_line = f'{indent}"{prop_name}"\t\t"{target_sig}"{suffix}\n'
+                            updated_lines[idx] = new_line
+                            changes.append({
+                                "file": file_rel_path,
+                                "type": "signature",
+                                "entry": current_entry,
+                                "prop": prop_name,
+                                "old": old_val,
+                                "new": target_sig,
+                            })
 
     return "".join(updated_lines), changes
 
@@ -422,21 +438,32 @@ def generate_discord_report(changes: list[dict], total_files: int) -> dict:
     offset_changes = [c for c in changes if c["type"] == "offset"]
     sig_changes = [c for c in changes if c["type"] == "signature"]
 
-    # Build description lines (limit to 25 rows for Discord embed limit)
+    # Deduplicate changes by (entry, prop, old, new) for clean presentation
+    dedup: dict[tuple, list[str]] = {}
+    for c in changes:
+        k = (c["entry"], c["prop"], c["old"], c["new"], c["type"])
+        fname = c["file"].split("/")[-1]
+        if k not in dedup:
+            dedup[k] = []
+        if fname not in dedup[k]:
+            dedup[k].append(fname)
+
     desc_lines = [
-        f"⚡ **Автоматически обновлена GameData перед запуском серверов!**",
+        f"⚡ **GameData на серверах автоматически обновлена перед стартом!**",
         f"Обновлено файлов: **{total_files}** | Офсетов VTable: **{len(offset_changes)}** | Сигнатур: **{len(sig_changes)}**\n",
     ]
 
-    for c in changes[:20]:
-        kind_tag = "VTable" if c["type"] == "offset" else "Sig"
+    for (entry, prop, old, new, kind), fnames in list(dedup.items())[:15]:
+        flist = ", ".join(fnames[:2])
+        if len(fnames) > 2:
+            flist += f" (+{len(fnames)-2})"
         desc_lines.append(
-            f"• `{c['file'].split('/')[-1]}`: **{c['entry']}** [{c['prop']}]\n"
-            f"   ~~`{c['old']}`~~ ➔ **`{c['new']}`**"
+            f"• `{flist}`: **{entry}** [{prop}]\n"
+            f"   ~~`{old}`~~ ➔ **`{new}`**"
         )
 
-    if len(changes) > 20:
-        desc_lines.append(f"\n*...и ещё {len(changes) - 20} изменений.*")
+    if len(dedup) > 15:
+        desc_lines.append(f"\n*...и ещё {len(dedup) - 15} обновлённых записей.*")
 
     embed = {
         "title": "🛡️ TF2 GameData автопатчер применил обновления",
@@ -472,7 +499,7 @@ def main() -> None:
     print(f"[*] Starting GameData sync for {len(target_uuids)} target servers...")
     vtables_db, signatures_db = load_canonical_data(args.repo_dir, args.mount_path)
 
-    print(f"[*] Canonical index loaded: {len(vtables_db['vtable_exact'])} vtable/offsets, {len(signatures_db)} signatures.")
+    print(f"[*] Canonical index loaded: {len(vtables_db['vtable_exact'])} exact vtables, {len(vtables_db['vtable_short'])} unambiguous short names, {len(signatures_db)} signatures.")
     total_files, changes = sync_all_servers(
         args.volumes_dir, target_uuids, vtables_db, signatures_db, dry_run=args.dry_run
     )
