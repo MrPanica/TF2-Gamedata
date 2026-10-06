@@ -91,8 +91,11 @@
             <p id="game-note" class="game-note" data-i18n="classifiedOnlyX64" hidden>Для Classified доступны только сигнатуры Linux x64.</p>
           </div>
           <div class="catalog-heading-actions">
+            <button id="btn-vtables" type="button" class="button button-changelog" hidden>
+              <span>📋</span> <span data-i18n="vtablesButton">Таблица VTable (Офсеты)</span>
+            </button>
             <button id="btn-changelog" type="button" class="button button-changelog" hidden>
-              <span>🕒</span> <span data-i18n="changelogButton">Журнал обновлений оффсетов</span>
+              <span>🕒</span> <span data-i18n="changelogButton">Журнал обновлений</span>
             </button>
             <div id="data-version" class="muted"></div>
           </div>
@@ -106,8 +109,8 @@
           </div>
 
           <label class="field search-field" for="query">
-            <span data-i18n="queryLabel">Название, сигнатура или оффсет (0x...)</span>
-            <input id="query" type="search" autocomplete="off" placeholder="Например: AddEmptyMesh или 0x91460" data-i18n-placeholder="queryPlaceholder" />
+            <span data-i18n="queryLabel">Название или сигнатура</span>
+            <input id="query" type="search" autocomplete="off" placeholder="Например: AddEmptyMesh или FindEntityByClassname" data-i18n-placeholder="queryPlaceholder" />
           </label>
 
           <div class="filters" aria-label="Фильтры">
@@ -178,6 +181,25 @@
         </div>
         <div id="changelog-body" class="modal-body">
           <div class="state"><span data-i18n="loadingIndex">Загрузка журнала…</span></div>
+        </div>
+      </div>
+    </dialog>
+
+    <dialog id="vtables-modal" class="modal-dialog modal-dialog-wide" aria-labelledby="vtables-title">
+      <div class="modal-card modal-card-vtables">
+        <header class="modal-header">
+          <div>
+            <h2 id="vtables-title" data-i18n="vtablesTitle">Таблица виртуальных оффсетов VTable (L / W)</h2>
+            <p id="vtables-meta" class="muted"></p>
+          </div>
+          <button id="vtables-close" type="button" class="button modal-close-btn" aria-label="Закрыть">&times;</button>
+        </header>
+        <div class="modal-search-row vtables-filter-row">
+          <input id="vtables-search" type="search" placeholder="Поиск по классу (напр. CRestore, CBaseEntity) или функции..." data-i18n-placeholder="searchVtablePlaceholder" autocomplete="off" />
+          <select id="vtables-class-select" aria-label="Класс"></select>
+        </div>
+        <div id="vtables-body" class="modal-body vtables-body">
+          <div class="state"><span data-i18n="loadingIndex">Загрузка VTable…</span></div>
         </div>
       </div>
     </dialog>

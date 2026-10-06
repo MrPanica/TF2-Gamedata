@@ -352,6 +352,21 @@ def main() -> int:
     if changed_samples:
         record_updates_history(history_file, args.build_id, stats_engine, stats_server, changed_samples, dry_run=args.dry_run)
 
+    # Dump VTables if 32-bit binaries provided
+    if (args.server32 or args.engine32) and not args.dry_run:
+        try:
+            dump_script = repo_dir / "tools" / "dump-tf2-vtables.py"
+            if dump_script.exists():
+                print("[*] Updating VTables dump...")
+                cmd = [sys.executable, str(dump_script)]
+                if args.server32:
+                    cmd.extend(["--server", str(args.server32)])
+                if args.engine32:
+                    cmd.extend(["--engine", str(args.engine32)])
+                subprocess.run(cmd, check=True)
+        except Exception as e:
+            print(f"[!] Warning: failed to dump VTables: {e}", file=sys.stderr)
+
     # If git push requested and not dry run
     if args.git_push and not args.dry_run:
         git_commit_and_push(repo_dir, args.build_id)

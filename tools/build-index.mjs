@@ -277,6 +277,11 @@ export function writeBuild(root = ROOT) {
     fs.copyFileSync(updatesHistoryPath, path.join(dist, "data", "updates.json"));
   }
 
+  const vtablesPath = path.join(root, "artifacts", "tf2-vtables.json");
+  if (fs.existsSync(vtablesPath)) {
+    fs.copyFileSync(vtablesPath, path.join(dist, "data", "tf2-vtables.json"));
+  }
+
   return { catalog, dist };
 }
 
