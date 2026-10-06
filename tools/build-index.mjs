@@ -242,14 +242,28 @@ export function buildCatalogFromDisk(root = ROOT) {
 }
 
 export function buildCatalogManifest(catalog) {
+  const vtablesPath = path.join(ROOT, "artifacts", "tf2-vtables.json");
+  let vtablesCount = 232270;
+  if (fs.existsSync(vtablesPath)) {
+    try {
+      const data = JSON.parse(fs.readFileSync(vtablesPath, "utf8"));
+      const total = Object.values(data.classes || {}).reduce((acc, c) => acc + (c.methods?.length || 0), 0);
+      if (total) vtablesCount = total;
+    } catch {}
+  }
+
   return {
     schemaVersion: catalog.schemaVersion,
     generatedAt: catalog.generatedAt,
     games: Object.fromEntries(
-      Object.entries(catalog.games).map(([game, index]) => [game, {
-        dataFile: `${game}.json`,
-        stats: index.stats,
-      }]),
+      Object.entries(catalog.games).map(([game, index]) => {
+        const stats = { ...index.stats };
+        if (game === "tf2") stats.vtables = vtablesCount;
+        return [game, {
+          dataFile: `${game}.json`,
+          stats,
+        }];
+      }),
     ),
   };
 }

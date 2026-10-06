@@ -132,14 +132,6 @@ def update_gamedata_file(
                     if old_offset != new_offset:
                         updated_lines[target_idx] = f"{target_indent}// {platform}: {new_offset}\n"
                         stats[f"{platform}_updated"] += 1
-                        if changed_samples is not None:
-                            changed_samples.append({
-                                "name": current_name,
-                                "library": library,
-                                "platform": platform,
-                                "oldOffset": old_offset,
-                                "newOffset": new_offset
-                            })
                     else:
                         stats[f"{platform}_unchanged"] += 1
                     pending_offset[platform] = None
@@ -148,11 +140,11 @@ def update_gamedata_file(
                     stats[f"{platform}_updated"] += 1
                     if changed_samples is not None:
                         changed_samples.append({
+                            "type": "symbol",
                             "name": current_name,
                             "library": library,
                             "platform": platform,
-                            "oldOffset": "none",
-                            "newOffset": new_offset
+                            "details": f"Обнаружен символ {platform}"
                         })
             else:
                 if pending_offset[platform] is not None:

@@ -27,6 +27,9 @@ const translations = {
     classifiedOnlyX64: "Для Classified доступны только сигнатуры Linux x64.",
     catalogAria: "Список сигнатур",
     catalogTitle: "Список сигнатур",
+    tabSignatures: "Сигнатуры",
+    tabVtables: "VTable",
+    vtablesMetaLabel: "офсетов",
     searchTitle: "Поиск и фильтры",
     queryLabel: "Название или сигнатура",
     queryPlaceholder: "Например: AddEmptyMesh или FindEntityByClassname",
@@ -36,7 +39,9 @@ const translations = {
     offsetLabel: "Оффсет",
     copyOffset: "Копировать оффсет",
     changelogButton: "Журнал обновлений",
-    changelogTitle: "Журнал обновлений оффсетов и сигнатур",
+    changelogTitle: "Журнал обновлений сигнатур и VTable",
+    changelogTypeCol: "Тип",
+    changelogDetailsCol: "Изменение",
     vtablesButton: "Таблица VTable (Офсеты)",
     vtablesTitle: "Таблица виртуальных оффсетов VTable (L / W)",
     searchVtablePlaceholder: "Поиск по классу (напр. CRestore, CBaseEntity) или методу...",
@@ -110,6 +115,9 @@ const translations = {
     classifiedOnlyX64: "Classified signatures are available for Linux x64 only.",
     catalogAria: "Signature list",
     catalogTitle: "Signature list",
+    tabSignatures: "Signatures",
+    tabVtables: "VTable",
+    vtablesMetaLabel: "offsets",
     searchTitle: "Search and filters",
     queryLabel: "Name or signature",
     queryPlaceholder: "For example: AddEmptyMesh or FindEntityByClassname",
@@ -119,7 +127,9 @@ const translations = {
     offsetLabel: "Offset",
     copyOffset: "Copy offset",
     changelogButton: "Update Changelog",
-    changelogTitle: "Signatures & Offsets Changelog",
+    changelogTitle: "Signatures & VTable Changelog",
+    changelogTypeCol: "Type",
+    changelogDetailsCol: "Change",
     vtablesButton: "VTable Offsets",
     vtablesTitle: "Virtual Method Table Offsets (L / W)",
     searchVtablePlaceholder: "Search class (e.g. CRestore, CBaseEntity) or method...",
@@ -397,9 +407,14 @@ function renderGameCards(games, selectedGame) {
   document.querySelector("#tf2-total").textContent = formatNumber(tf2.entries);
   document.querySelector("#tf2-engine").textContent = formatNumber(tf2Libraries.engine ?? 0);
   document.querySelector("#tf2-server").textContent = formatNumber(tf2Libraries.server ?? 0);
+  const elTf2V = document.querySelector("#tf2-vtables");
+  if (elTf2V) elTf2V.textContent = formatNumber(tf2.vtables ?? 232270);
+
   document.querySelector("#tf2c-total").textContent = formatNumber(tf2c.entries);
   document.querySelector("#tf2c-engine").textContent = formatNumber(tf2cLibraries.engine ?? 0);
   document.querySelector("#tf2c-server").textContent = formatNumber(tf2cLibraries.server ?? 0);
+  const elTf2cV = document.querySelector("#tf2c-vtables");
+  if (elTf2cV) elTf2cV.textContent = tf2c.vtables ? formatNumber(tf2c.vtables) : "—";
 }
 
 function renderSummary(index, selectedGame) {
@@ -669,7 +684,7 @@ function init() {
       loading.hidden = true;
       applyFilters();
       initChangelog();
-      initVTables(selectedGame);
+      initCatalogTabs(selectedGame);
     })
     .catch((loadError) => {
       loading.hidden = true;
@@ -677,7 +692,7 @@ function init() {
       error.hidden = false;
       status.textContent = translate("loadErrorStatus");
       initChangelog();
-      initVTables(selectedGame);
+      initCatalogTabs(selectedGame);
     });
 }
 
@@ -700,9 +715,9 @@ function initChangelog() {
       if (updatesData?.updates?.length) {
         changelogBtn.hidden = false;
         const latest = updatesData.updates[0];
-        const countStr = latest.stats?.totalChanged ? formatNumber(latest.stats.totalChanged) : "";
+        const countStr = latest.sampleCount || latest.sampleChanges?.length || "";
         const label = changelogBtn.querySelector("[data-i18n='changelogButton']");
-        if (label) label.textContent = `${translate("changelogButton")} (${countStr})`;
+        if (label) label.textContent = `${translate("changelogButton")}${countStr ? ` (${countStr})` : ""}`;
       }
     } catch {
       // Ignore if updates.json is not present
@@ -723,13 +738,17 @@ function initChangelog() {
 
       const statsRow = element("div", "changelog-stats-row");
       if (update.stats) {
-        statsRow.append(
-          element("span", "badge badge-accent", `engine Linux: +${formatNumber(update.stats.engineLinux)}`),
-          element("span", "badge badge-accent", `engine Linux64: +${formatNumber(update.stats.engineLinux64)}`),
-          element("span", "badge badge-library", `server Linux: +${formatNumber(update.stats.serverLinux)}`),
-          element("span", "badge badge-library", `server Linux64: +${formatNumber(update.stats.serverLinux64)}`),
-          element("span", "badge badge-warning", `Всего: ${formatNumber(update.stats.totalChanged)}`),
-        );
+        if (update.stats.signaturesCount || update.stats.totalSignatures) {
+          statsRow.append(
+            element("span", "badge badge-accent", `Сигнатур: ${formatNumber(update.stats.signaturesCount || update.stats.totalSignatures)}`),
+            element("span", "badge badge-library", `VTable: ${formatNumber(update.stats.vtablesCount || update.stats.vtablesMethods || 232270)}`),
+            element("span", "badge badge-warning", `Классов: ${formatNumber(update.stats.classesCount || update.stats.vtablesClasses || 3391)}`),
+          );
+        } else if (update.stats.totalChanged) {
+          statsRow.append(
+            element("span", "badge badge-accent", `Изменений: ${formatNumber(update.stats.totalChanged)}`),
+          );
+        }
       }
 
       const tableWrap = element("div", "changelog-table-wrap");
@@ -737,22 +756,26 @@ function initChangelog() {
       const thead = element("thead");
       const headRow = element("tr");
       headRow.append(
+        element("th", "", translate("changelogTypeCol")),
         element("th", "", translate("functionNameCol")),
         element("th", "", translate("libraryCol")),
-        element("th", "", translate("oldOffsetLabel")),
-        element("th", "", translate("newOffsetLabel")),
+        element("th", "", translate("changelogDetailsCol")),
       );
       thead.append(headRow);
       table.append(thead);
 
       const tbody = element("tbody");
       const samples = (update.sampleChanges || []).filter((item) => {
+        // Skip raw offset shifts like 0x913C0 -> 0x91460
+        if (item.oldOffset && item.newOffset && String(item.oldOffset).startsWith("0x")) {
+          return false;
+        }
         if (!filter) return true;
-        return (
-          item.name.toLowerCase().includes(filter) ||
-          item.oldOffset.toLowerCase().includes(filter) ||
-          item.newOffset.toLowerCase().includes(filter)
-        );
+        const nameMatch = (item.name || "").toLowerCase().includes(filter);
+        const typeMatch = (item.type || "").toLowerCase().includes(filter);
+        const detailsMatch = (item.details || "").toLowerCase().includes(filter);
+        const libMatch = (item.library || "").toLowerCase().includes(filter);
+        return nameMatch || typeMatch || detailsMatch || libMatch;
       });
 
       if (samples.length === 0) {
@@ -764,25 +787,47 @@ function initChangelog() {
       } else {
         samples.slice(0, 150).forEach((item) => {
           const tr = element("tr");
+          const tdType = element("td", "");
+          const type = item.type || (item.name?.includes("::") ? "vtable" : "symbol");
+          if (type === "vtable") {
+            tdType.append(element("span", "badge badge-accent", "VTable"));
+          } else if (type === "byte-pattern") {
+            tdType.append(element("span", "badge badge-warning", "Byte-pattern"));
+          } else {
+            tdType.append(element("span", "badge badge-library", "ELF symbol"));
+          }
+
           const tdName = element("td", "changelog-func-name");
           const nameLink = element("button", "link-button", item.name);
           nameLink.type = "button";
           nameLink.title = translate("showInCatalog");
           nameLink.addEventListener("click", () => {
             modal.close();
-            const q = document.querySelector("#query");
-            if (q) {
-              q.value = item.name;
-              q.dispatchEvent(new Event("input", { bubbles: true }));
-              q.scrollIntoView({ behavior: "smooth" });
+            if (type === "vtable") {
+              const tabVt = document.querySelector("#tab-vtables");
+              if (tabVt) tabVt.click();
+              const q = document.querySelector("#vtable-query");
+              if (q) {
+                q.value = item.name;
+                q.dispatchEvent(new Event("input", { bubbles: true }));
+                q.scrollIntoView({ behavior: "smooth" });
+              }
+            } else {
+              const tabSig = document.querySelector("#tab-signatures");
+              if (tabSig) tabSig.click();
+              const q = document.querySelector("#query");
+              if (q) {
+                q.value = item.name;
+                q.dispatchEvent(new Event("input", { bubbles: true }));
+                q.scrollIntoView({ behavior: "smooth" });
+              }
             }
           });
           tdName.append(nameLink);
 
-          const tdLib = element("td", "", `${item.library} (${item.platform === "linux64" ? "x64" : "x86"})`);
-          const tdOld = element("td", "changelog-offset-old", item.oldOffset);
-          const tdNew = element("td", "changelog-offset-new", item.newOffset);
-          tr.append(tdName, tdLib, tdOld, tdNew);
+          const tdLib = element("td", "", `${item.library || ""} ${item.platform ? `(${item.platform})` : ""}`.trim());
+          const tdDetails = element("td", "changelog-details", item.details || "—");
+          tr.append(tdType, tdName, tdLib, tdDetails);
           tbody.append(tr);
         });
       }
@@ -815,34 +860,60 @@ function initChangelog() {
   loadUpdates();
 }
 
-function initVTables(selectedGame) {
-  const vtablesBtn = document.querySelector("#btn-vtables");
-  const modal = document.querySelector("#vtables-modal");
-  const closeBtn = document.querySelector("#vtables-close");
-  const body = document.querySelector("#vtables-body");
-  const searchInput = document.querySelector("#vtables-search");
-  const classSelect = document.querySelector("#vtables-class-select");
-  const meta = document.querySelector("#vtables-meta");
+function initCatalogTabs(selectedGame) {
+  const tabSignatures = document.querySelector("#tab-signatures");
+  const tabVtables = document.querySelector("#tab-vtables");
+  const signaturesControls = document.querySelector("#signatures-search-controls");
+  const vtablesControls = document.querySelector("#vtables-search-controls");
+  const signaturesView = document.querySelector("#signatures-view");
+  const vtablesView = document.querySelector("#vtables-view");
+  const vtableQueryInput = document.querySelector("#vtable-query");
+  const vtableClassSelect = document.querySelector("#vtable-class");
+  const vtableSourceSelect = document.querySelector("#vtable-source");
+  const vtablesContainer = document.querySelector("#vtables-container");
+  const vtableViewTitle = document.querySelector("#vtable-view-title");
+  const vtableViewStatus = document.querySelector("#vtable-view-status");
 
-  if (!vtablesBtn || !modal) return;
+  if (!tabSignatures || !tabVtables) return;
 
   if (selectedGame !== "tf2") {
-    vtablesBtn.hidden = true;
-    return;
+    tabVtables.hidden = true;
+  } else {
+    tabVtables.hidden = false;
   }
-  vtablesBtn.hidden = false;
 
+  let activeTab = "signatures";
   let vtablesData = null;
   let loadingPromise = null;
-  let currentClass = "CRestore";
+  let currentVTableClass = "CRestore";
 
-  async function loadVTables() {
+  function switchTab(newTab) {
+    activeTab = newTab;
+    tabSignatures.classList.toggle("active", activeTab === "signatures");
+    tabSignatures.setAttribute("aria-selected", activeTab === "signatures");
+    tabVtables.classList.toggle("active", activeTab === "vtables");
+    tabVtables.setAttribute("aria-selected", activeTab === "vtables");
+
+    if (signaturesControls) signaturesControls.hidden = activeTab !== "signatures";
+    if (vtablesControls) vtablesControls.hidden = activeTab !== "vtables";
+    if (signaturesView) signaturesView.hidden = activeTab !== "signatures";
+    if (vtablesView) vtablesView.hidden = activeTab !== "vtables";
+
+    if (activeTab === "vtables") {
+      ensureVTablesLoaded();
+    }
+  }
+
+  tabSignatures.addEventListener("click", () => switchTab("signatures"));
+  tabVtables.addEventListener("click", () => switchTab("vtables"));
+
+  async function loadVTablesData() {
     if (vtablesData) return vtablesData;
     if (loadingPromise) return loadingPromise;
     loadingPromise = (async () => {
       try {
         const res = await fetch("./data/tf2-vtables.json");
-        if (!res.ok) throw new Error("Failed to load vtables");
+        if (!res.ok) throw new Error("HTTP " + res.status);
         vtablesData = await res.json();
         return vtablesData;
       } catch (err) {
@@ -853,27 +924,72 @@ function initVTables(selectedGame) {
     return loadingPromise;
   }
 
+  async function ensureVTablesLoaded() {
+    if (!vtablesData) {
+      if (vtablesContainer) {
+        vtablesContainer.replaceChildren(element("div", "state", translate("loadingIndex")));
+      }
+      await loadVTablesData();
+      if (!vtablesData) {
+        if (vtablesContainer) {
+          vtablesContainer.replaceChildren(element("div", "state state-error", "Не удалось загрузить данные VTable."));
+        }
+        return;
+      }
+    }
+
+    updateVTableClassSelect();
+    renderCurrentVTable();
+  }
+
   function getMethodShortName(name) {
     const m = name.match(/::([~a-zA-Z0-9_]+)\(/);
     return m ? m[1] : name;
   }
 
-  function renderVTable(className, filterText = "") {
-    if (!body || !vtablesData?.classes) return;
-    const classInfo = vtablesData.classes[className];
+  function updateVTableClassSelect() {
+    if (!vtableClassSelect || !vtablesData?.classes) return;
+    const currentLib = vtableSourceSelect?.value || "all";
+
+    const sortedClasses = Object.keys(vtablesData.classes).sort((a, b) => a.localeCompare(b));
+    const filtered = sortedClasses.filter((cls) => {
+      const info = vtablesData.classes[cls];
+      if (currentLib !== "all" && info.library !== currentLib) return false;
+      return true;
+    });
+
+    vtableClassSelect.replaceChildren();
+    filtered.slice(0, 1000).forEach((cls) => {
+      const opt = document.createElement("option");
+      opt.value = cls;
+      opt.textContent = `${cls} (${vtablesData.classes[cls].methods.length})`;
+      if (cls === currentVTableClass) opt.selected = true;
+      vtableClassSelect.append(opt);
+    });
+
+    if (filtered.length > 0 && !filtered.includes(currentVTableClass)) {
+      currentVTableClass = filtered[0];
+      vtableClassSelect.value = currentVTableClass;
+    }
+  }
+
+  function renderCurrentVTable() {
+    if (!vtablesContainer || !vtablesData?.classes) return;
+    const classInfo = vtablesData.classes[currentVTableClass];
     if (!classInfo) {
-      body.replaceChildren(element("div", "state", `Класс "${className}" не найден.`));
+      vtablesContainer.replaceChildren(element("div", "state", `Класс "${currentVTableClass}" не найден.`));
       return;
     }
 
-    body.replaceChildren();
+    const filterText = (vtableQueryInput?.value || "").trim().toLowerCase();
 
-    const header = element("div", "vtable-class-header");
-    const title = element("span", "", `${className} (${classInfo.library})`);
-    const count = element("span", "badge badge-accent", `${classInfo.methods.length} методов`);
-    header.append(title, count);
+    if (vtableViewTitle) {
+      vtableViewTitle.textContent = `${currentVTableClass} (${classInfo.library})`;
+    }
+    if (vtableViewStatus) {
+      vtableViewStatus.textContent = `${formatNumber(classInfo.methods.length)} виртуальных методов / офсетов`;
+    }
 
-    const tableWrap = element("div", "vtables-table-wrap");
     const table = element("table", "vtables-table");
     const thead = element("thead");
     const headRow = element("tr");
@@ -881,22 +997,23 @@ function initVTables(selectedGame) {
       element("th", "vtables-col-l", "L"),
       element("th", "vtables-col-w", "W"),
       element("th", "vtables-col-func", translate("vtableMethodCol")),
-      element("th", "vtables-col-action", translate("architectureLabel")),
+      element("th", "vtables-col-action", "GameData"),
     );
     thead.append(headRow);
     table.append(thead);
 
     const tbody = element("tbody");
-    const filter = filterText.trim().toLowerCase();
+    let matchedCount = 0;
 
     classInfo.methods.forEach(([wIndex, fullName], lIndex) => {
-      if (filter) {
-        const matchesName = fullName.toLowerCase().includes(filter);
-        const matchesL = String(lIndex) === filter;
-        const matchesW = wIndex !== null && String(wIndex) === filter;
+      if (filterText) {
+        const matchesName = fullName.toLowerCase().includes(filterText);
+        const matchesL = String(lIndex) === filterText;
+        const matchesW = wIndex !== null && String(wIndex) === filterText;
         if (!matchesName && !matchesL && !matchesW) return;
       }
 
+      matchedCount++;
       const tr = element("tr");
       const tdL = element("td", "vtables-col-l", String(lIndex));
       const tdW = element("td", "vtables-col-w", wIndex !== null ? String(wIndex) : "—");
@@ -922,72 +1039,39 @@ function initVTables(selectedGame) {
       tbody.append(tr);
     });
 
+    if (matchedCount === 0) {
+      const tr = element("tr");
+      const td = element("td", "muted", "В этом классе не найдено методов, соответствующих запросу.");
+      td.colSpan = 4;
+      tr.append(td);
+      tbody.append(tr);
+    }
+
     table.append(tbody);
-    tableWrap.append(table);
-    body.append(header, tableWrap);
+    vtablesContainer.replaceChildren(table);
   }
 
-  function setupClassOptions(filter = "") {
-    if (!classSelect || !vtablesData?.classes) return;
-    const filterLower = filter.trim().toLowerCase();
-    const sorted = Object.keys(vtablesData.classes).sort((a, b) => a.localeCompare(b));
-    const matching = sorted.filter((c) => !filterLower || c.toLowerCase().includes(filterLower));
-
-    classSelect.replaceChildren();
-    matching.slice(0, 500).forEach((cls) => {
-      const opt = document.createElement("option");
-      opt.value = cls;
-      opt.textContent = `${cls} (${vtablesData.classes[cls].methods.length})`;
-      if (cls === currentClass) opt.selected = true;
-      classSelect.append(opt);
-    });
-
-    if (matching.length > 0 && !matching.includes(currentClass)) {
-      currentClass = matching[0];
-      classSelect.value = currentClass;
-    }
-  }
-
-  classSelect?.addEventListener("change", () => {
-    currentClass = classSelect.value;
-    renderVTable(currentClass, searchInput?.value || "");
+  vtableClassSelect?.addEventListener("change", () => {
+    currentVTableClass = vtableClassSelect.value;
+    renderCurrentVTable();
   });
 
-  searchInput?.addEventListener("input", () => {
-    const q = (searchInput.value || "").trim().toLowerCase();
+  vtableSourceSelect?.addEventListener("change", () => {
+    updateVTableClassSelect();
+    renderCurrentVTable();
+  });
+
+  vtableQueryInput?.addEventListener("input", () => {
+    const q = (vtableQueryInput.value || "").trim().toLowerCase();
     if (!vtablesData?.classes) return;
-    const matchingClass = Object.keys(vtablesData.classes).find((c) => c.toLowerCase() === q);
-    if (matchingClass) {
-      currentClass = matchingClass;
-      setupClassOptions("");
-      classSelect.value = currentClass;
-    }
-    renderVTable(currentClass, q);
-  });
 
-  vtablesBtn.addEventListener("click", async () => {
-    modal.showModal();
-    if (!vtablesData) {
-      body.replaceChildren(element("div", "state", translate("loadingIndex")));
-      await loadVTables();
+    // Check if query matches another class name directly
+    const directClass = Object.keys(vtablesData.classes).find((c) => c.toLowerCase() === q);
+    if (directClass && directClass !== currentVTableClass) {
+      currentVTableClass = directClass;
+      vtableClassSelect.value = currentVTableClass;
     }
-    if (vtablesData) {
-      if (meta) {
-        meta.textContent = `${formatNumber(vtablesData.totalClasses)} классов · сервер и движок TF2`;
-      }
-      if (!vtablesData.classes[currentClass]) {
-        currentClass = Object.keys(vtablesData.classes)[0] || "";
-      }
-      setupClassOptions();
-      renderVTable(currentClass, searchInput?.value || "");
-    } else {
-      body.replaceChildren(element("div", "state", "Не удалось загрузить данные VTable."));
-    }
-  });
-
-  closeBtn?.addEventListener("click", () => modal.close());
-  modal.addEventListener("click", (e) => {
-    if (e.target === modal) modal.close();
+    renderCurrentVTable();
   });
 }
 

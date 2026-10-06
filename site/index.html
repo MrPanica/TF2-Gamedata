@@ -62,6 +62,7 @@
               <span><strong id="tf2-total">—</strong> <span data-i18n="entriesLabel">записей</span></span>
               <span><strong id="tf2-engine">—</strong> engine</span>
               <span><strong id="tf2-server">—</strong> server</span>
+              <span><strong id="tf2-vtables">232 270</strong> <span data-i18n="vtablesMetaLabel">офсетов</span></span>
             </div>
           </div>
         </a>
@@ -79,21 +80,31 @@
               <span><strong id="tf2c-total">—</strong> <span data-i18n="entriesLabel">записей</span></span>
               <span><strong id="tf2c-engine">—</strong> engine</span>
               <span><strong id="tf2c-server">—</strong> server</span>
+              <span><strong id="tf2c-vtables">—</strong> <span data-i18n="vtablesMetaLabel">офсетов</span></span>
             </div>
           </div>
         </a>
       </section>
 
       <section id="catalog" class="catalog-section" aria-labelledby="catalog-title" data-i18n-aria="catalogAria">
+        <h2 id="catalog-title" class="sr-only" data-i18n="catalogTitle">Список сигнатур</h2>
         <div class="catalog-heading">
-          <div>
-            <h2 id="catalog-title" data-i18n="catalogTitle">Список сигнатур</h2>
+          <div class="catalog-heading-left">
+            <div class="catalog-tabs" role="tablist" aria-label="Разделы каталога">
+              <button id="tab-signatures" type="button" class="catalog-tab active" role="tab" aria-selected="true" data-tab="signatures">
+                <span>⚡</span>
+                <span data-i18n="tabSignatures">Сигнатуры</span>
+                <span id="tab-signatures-badge" class="tab-badge">61.5k</span>
+              </button>
+              <button id="tab-vtables" type="button" class="catalog-tab" role="tab" aria-selected="false" data-tab="vtables">
+                <span>📋</span>
+                <span data-i18n="tabVtables">VTable</span>
+                <span id="tab-vtables-badge" class="tab-badge">232k</span>
+              </button>
+            </div>
             <p id="game-note" class="game-note" data-i18n="classifiedOnlyX64" hidden>Для Classified доступны только сигнатуры Linux x64.</p>
           </div>
           <div class="catalog-heading-actions">
-            <button id="btn-vtables" type="button" class="button button-changelog" hidden>
-              <span>📋</span> <span data-i18n="vtablesButton">Таблица VTable (Офсеты)</span>
-            </button>
             <button id="btn-changelog" type="button" class="button button-changelog" hidden>
               <span>🕒</span> <span data-i18n="changelogButton">Журнал обновлений</span>
             </button>
@@ -108,62 +119,118 @@
             </div>
           </div>
 
-          <label class="field search-field" for="query">
-            <span data-i18n="queryLabel">Название или сигнатура</span>
-            <input id="query" type="search" autocomplete="off" placeholder="Например: AddEmptyMesh или FindEntityByClassname" data-i18n-placeholder="queryPlaceholder" />
-          </label>
+          <div id="signatures-search-controls">
+            <label class="field search-field" for="query">
+              <span data-i18n="queryLabel">Название или сигнатура</span>
+              <input id="query" type="search" autocomplete="off" placeholder="Например: AddEmptyMesh или FindEntityByClassname" data-i18n-placeholder="queryPlaceholder" />
+            </label>
 
-          <div class="filters" aria-label="Фильтры">
-            <label class="field" for="source">
-              <span data-i18n="libraryLabel">Библиотека</span>
-              <select id="source">
-                <option value="all" data-i18n="all">Все</option>
-                <option value="engine">engine</option>
-                <option value="server">server</option>
-              </select>
+            <div class="filters" aria-label="Фильтры">
+              <label class="field" for="source">
+                <span data-i18n="libraryLabel">Библиотека</span>
+                <select id="source">
+                  <option value="all" data-i18n="all">Все</option>
+                  <option value="engine">engine</option>
+                  <option value="server">server</option>
+                </select>
+              </label>
+              <label class="field" for="arch">
+                <span data-i18n="architectureLabel">Архитектура</span>
+                <select id="arch">
+                  <option value="all" data-i18n="allEntries">Все записи</option>
+                  <option value="linux" data-game-filter="tf2" data-i18n="linuxX86">x86</option>
+                  <option value="linux64" data-i18n="linuxX64">x64</option>
+                  <option value="both" data-game-filter="tf2" data-i18n="bothArchitectures">Обе архитектуры</option>
+                  <option value="missing" data-game-filter="tf2" data-i18n="missingArchitecture">Только с пропуском</option>
+                </select>
+              </label>
+              <label class="field" for="kind">
+                <span data-i18n="kindLabel">Тип</span>
+                <select id="kind">
+                  <option value="all" data-i18n="all">Все</option>
+                  <option value="symbol" data-i18n="elfSymbol">ELF symbol</option>
+                  <option value="byte-pattern" data-i18n="bytePattern">Byte-pattern</option>
+                </select>
+              </label>
+            </div>
+          </div>
+
+          <div id="vtables-search-controls" hidden>
+            <label class="field search-field" for="vtable-query">
+              <span data-i18n="searchVtablePlaceholder">Поиск по классу, функции или оффсету</span>
+              <input id="vtable-query" type="search" autocomplete="off" placeholder="Например: CRestore, GetReadPos или 12" />
             </label>
-            <label class="field" for="arch">
-              <span data-i18n="architectureLabel">Архитектура</span>
-              <select id="arch">
-                <option value="all" data-i18n="allEntries">Все записи</option>
-                <option value="linux" data-game-filter="tf2" data-i18n="linuxX86">x86</option>
-                <option value="linux64" data-i18n="linuxX64">x64</option>
-                <option value="both" data-game-filter="tf2" data-i18n="bothArchitectures">Обе архитектуры</option>
-                <option value="missing" data-game-filter="tf2" data-i18n="missingArchitecture">Только с пропуском</option>
-              </select>
-            </label>
-            <label class="field" for="kind">
-              <span data-i18n="kindLabel">Тип</span>
-              <select id="kind">
-                <option value="all" data-i18n="all">Все</option>
-                <option value="symbol" data-i18n="elfSymbol">ELF symbol</option>
-                <option value="byte-pattern" data-i18n="bytePattern">Byte-pattern</option>
-              </select>
-            </label>
+
+            <div class="filters vtables-filters" aria-label="Фильтры VTable">
+              <label class="field" for="vtable-class">
+                <span data-i18n="vtableClassSelect">Класс C++</span>
+                <select id="vtable-class"></select>
+              </label>
+
+              <label class="field" for="vtable-source">
+                <span data-i18n="libraryLabel">Библиотека</span>
+                <select id="vtable-source">
+                  <option value="all" data-i18n="all">Все</option>
+                  <option value="server">server</option>
+                  <option value="engine">engine</option>
+                </select>
+              </label>
+            </div>
           </div>
         </section>
 
-        <section id="summary" class="stats" aria-label="Статистика" data-i18n-aria="summaryAria" hidden></section>
+        <div id="signatures-view">
+          <section id="summary" class="stats" aria-label="Статистика" data-i18n-aria="summaryAria" hidden></section>
 
-        <div class="results-heading">
-          <div>
-            <h2 data-i18n="resultsTitle">Результаты</h2>
-            <p id="status" class="muted" role="status" aria-live="polite">Загрузка индекса…</p>
+          <div class="results-heading">
+            <div>
+              <h2 data-i18n="resultsTitle">Результаты</h2>
+              <p id="status" class="muted" role="status" aria-live="polite">Загрузка индекса…</p>
+            </div>
+            <button id="reset" class="button button-ghost" type="button" data-i18n="reset">Сбросить</button>
           </div>
-          <button id="reset" class="button button-ghost" type="button" data-i18n="reset">Сбросить</button>
+          <div id="error" class="state state-error" role="alert" hidden></div>
+          <div id="results" class="results" aria-live="polite"></div>
+          <div id="empty" class="state" hidden>
+            <strong data-i18n="noResults">Ничего не найдено</strong>
+            <span data-i18n="noResultsHint">Попробуйте сократить запрос или изменить фильтры.</span>
+          </div>
+          <div id="loading" class="state" aria-busy="true">
+            <span class="skeleton skeleton-wide"></span>
+            <span class="skeleton skeleton-medium"></span>
+            <span class="skeleton skeleton-wide"></span>
+          </div>
+          <div id="sentinel" class="sentinel" aria-hidden="true"></div>
         </div>
-        <div id="error" class="state state-error" role="alert" hidden></div>
-        <div id="results" class="results" aria-live="polite"></div>
-        <div id="empty" class="state" hidden>
-          <strong data-i18n="noResults">Ничего не найдено</strong>
-          <span data-i18n="noResultsHint">Попробуйте сократить запрос или изменить фильтры.</span>
+
+        <div id="vtables-view" hidden>
+          <div id="vtables-summary" class="stats stats-three" aria-label="Статистика VTable">
+            <div class="stat-card">
+              <span class="stat-label">Всего офсетов</span>
+              <strong id="vtable-stat-methods" class="stat-value">232 270</strong>
+              <span class="stat-hint">виртуальных методов</span>
+            </div>
+            <div class="stat-card">
+              <span class="stat-label">Классов C++</span>
+              <strong id="vtable-stat-classes" class="stat-value">3 391</strong>
+              <span class="stat-hint">с виртуальными таблицами</span>
+            </div>
+            <div class="stat-card">
+              <span class="stat-label">Библиотеки</span>
+              <strong class="stat-value">server / engine</strong>
+              <span class="stat-hint">Linux ELF</span>
+            </div>
+          </div>
+          <div class="results-heading">
+            <div>
+              <h2 id="vtable-view-title">Таблица VTable</h2>
+              <p id="vtable-view-status" class="muted">Выберите класс или воспользуйтесь поиском</p>
+            </div>
+          </div>
+          <div id="vtables-container" class="vtables-table-wrap">
+            <div class="state"><span>Загрузка данных VTable…</span></div>
+          </div>
         </div>
-        <div id="loading" class="state" aria-busy="true">
-          <span class="skeleton skeleton-wide"></span>
-          <span class="skeleton skeleton-medium"></span>
-          <span class="skeleton skeleton-wide"></span>
-        </div>
-        <div id="sentinel" class="sentinel" aria-hidden="true"></div>
       </section>
     </main>
 
@@ -181,25 +248,6 @@
         </div>
         <div id="changelog-body" class="modal-body">
           <div class="state"><span data-i18n="loadingIndex">Загрузка журнала…</span></div>
-        </div>
-      </div>
-    </dialog>
-
-    <dialog id="vtables-modal" class="modal-dialog modal-dialog-wide" aria-labelledby="vtables-title">
-      <div class="modal-card modal-card-vtables">
-        <header class="modal-header">
-          <div>
-            <h2 id="vtables-title" data-i18n="vtablesTitle">Таблица виртуальных оффсетов VTable (L / W)</h2>
-            <p id="vtables-meta" class="muted"></p>
-          </div>
-          <button id="vtables-close" type="button" class="button modal-close-btn" aria-label="Закрыть">&times;</button>
-        </header>
-        <div class="modal-search-row vtables-filter-row">
-          <input id="vtables-search" type="search" placeholder="Поиск по классу (напр. CRestore, CBaseEntity) или функции..." data-i18n-placeholder="searchVtablePlaceholder" autocomplete="off" />
-          <select id="vtables-class-select" aria-label="Класс"></select>
-        </div>
-        <div id="vtables-body" class="modal-body vtables-body">
-          <div class="state"><span data-i18n="loadingIndex">Загрузка VTable…</span></div>
         </div>
       </div>
     </dialog>
