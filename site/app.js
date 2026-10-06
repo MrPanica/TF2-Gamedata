@@ -136,6 +136,25 @@ const translations = {
     noResultsStatus: "Ничего не найдено",
     loadError: "Не удалось загрузить индекс: {message}",
     loadErrorStatus: "Ошибка загрузки",
+    gamedataToolButton: "Парсер GameData",
+    gamedataToolTitle: "Парсер и обновление GameData",
+    gamedataToolSubtitle: "Вставьте свой .txt файл GameData для сверки и обновления сигнатур и смещений",
+    gamedataOptUpdate: "Обновить сигнатуры и офсеты",
+    gamedataOptFormat: "Форматировать структуру (отступы)",
+    gamedataOptComments: "Сохранять комментарии",
+    gamedataIndentLabel: "Отступ:",
+    gamedataIndentTabs: "Табуляция (Tab)",
+    gamedataIndentSpaces4: "4 пробела",
+    gamedataIndentSpaces2: "2 пробела",
+    gamedataUploadBtn: "Загрузить файл .txt",
+    gamedataInputHeader: "Исходный GameData",
+    gamedataExampleBtn: "Вставить пример",
+    gamedataOutputHeader: "Обновлённый результат",
+    gamedataReadyPrompt: "Вставьте GameData и нажмите «Обработать и обновить»",
+    gamedataProcessBtn: "Обработать и обновить",
+    download: "Скачать .txt",
+    gamedataStatsResult: "Обработано: {sigs} сигнатур ({sigsUp} обновлено), {offsets} офсетов ({offsetsUp} обновлено)",
+    gamedataEmptyAlert: "Пожалуйста, вставьте текст GameData в поле ввода.",
   },
   en: {
     languageLabel: "Language",
@@ -270,6 +289,25 @@ const translations = {
     noResultsStatus: "No results",
     loadError: "Could not load index: {message}",
     loadErrorStatus: "Loading error",
+    gamedataToolButton: "GameData Parser",
+    gamedataToolTitle: "GameData Parser & Updater",
+    gamedataToolSubtitle: "Paste your GameData .txt file to check and update signatures and offsets",
+    gamedataOptUpdate: "Update signatures and offsets",
+    gamedataOptFormat: "Format structure (indentation)",
+    gamedataOptComments: "Preserve comments",
+    gamedataIndentLabel: "Indent:",
+    gamedataIndentTabs: "Tabs (Tab)",
+    gamedataIndentSpaces4: "4 spaces",
+    gamedataIndentSpaces2: "2 spaces",
+    gamedataUploadBtn: "Upload .txt file",
+    gamedataInputHeader: "Source GameData",
+    gamedataExampleBtn: "Insert example",
+    gamedataOutputHeader: "Updated result",
+    gamedataReadyPrompt: "Paste GameData and click \"Process and Update\"",
+    gamedataProcessBtn: "Process and Update",
+    download: "Download .txt",
+    gamedataStatsResult: "Processed: {sigs} signatures ({sigsUp} updated), {offsets} offsets ({offsetsUp} updated)",
+    gamedataEmptyAlert: "Please paste GameData text into the input field.",
   },
 };
 
@@ -777,6 +815,7 @@ function init() {
       applyFilters();
       initChangelog();
       initCatalogTabs(selectedGame, state, makeResultCard);
+      initGameDataTool(selectedGame, state);
     })
     .catch((loadError) => {
       loading.hidden = true;
@@ -785,6 +824,7 @@ function init() {
       status.textContent = translate("loadErrorStatus");
       initChangelog();
       initCatalogTabs(selectedGame, state, makeResultCard);
+      initGameDataTool(selectedGame, state);
     });
 }
 
@@ -958,6 +998,26 @@ function initChangelog() {
   });
 
   loadUpdates();
+}
+
+function makeGameDataButton(onClick) {
+  const btn = document.createElement("button");
+  btn.className = "btn-sm-action";
+  btn.type = "button";
+  btn.title = "Скопировать блок для SourceMod GameData";
+  btn.innerHTML = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg><span>GameData</span>`;
+  if (onClick) {
+    btn.addEventListener("click", async () => {
+      const ok = await onClick();
+      const span = btn.querySelector("span");
+      if (span) {
+        const orig = span.textContent;
+        span.textContent = ok ? "✓ OK" : "ERR";
+        setTimeout(() => { span.textContent = orig; }, 1200);
+      }
+    });
+  }
+  return btn;
 }
 
 function initCatalogTabs(selectedGame, state, makeResultCard) {
@@ -1205,20 +1265,14 @@ function initCatalogTabs(selectedGame, state, makeResultCard) {
         tdFunc.append(code, badge);
 
         const tdAction = element("td", "vtables-col-action");
-        const copyBtn = element("button", "btn-sm-action", "GameData");
-        copyBtn.type = "button";
-        copyBtn.title = "Скопировать блок для SourceMod GameData";
-        copyBtn.addEventListener("click", async () => {
+        const copyBtn = makeGameDataButton(async () => {
           let snippet = `"${item.fullName}"\n{\n`;
           if (item.windows) snippet += `    "windows"      "${item.windows}"\n`;
           if (item.linux) snippet += `    "linux"        "${item.linux}"\n`;
           if (item.windows64) snippet += `    "windows64"    "${item.windows64}"\n`;
           if (item.linux64) snippet += `    "linux64"      "${item.linux64}"\n`;
           snippet += `}`;
-          const ok = await copyText(snippet);
-          const orig = copyBtn.textContent;
-          copyBtn.textContent = ok ? "✓ OK" : "ERR";
-          setTimeout(() => { copyBtn.textContent = orig; }, 1200);
+          return await copyText(snippet);
         });
         tdAction.append(copyBtn);
 
@@ -1246,16 +1300,10 @@ function initCatalogTabs(selectedGame, state, makeResultCard) {
         tdFunc.append(code);
 
         const tdAction = element("td", "vtables-col-action");
-        const copyBtn = element("button", "btn-sm-action", "GameData");
-        copyBtn.type = "button";
-        copyBtn.title = "Скопировать блок для SourceMod GameData";
-        copyBtn.addEventListener("click", async () => {
+        const copyBtn = makeGameDataButton(async () => {
           const shortName = getMethodShortName(item.fullName);
           const snippet = `"${shortName}"\n{\n    "windows"    "${item.wIndex !== null ? item.wIndex : "0"}"\n    "linux"      "${item.lIndex}"\n}`;
-          const ok = await copyText(snippet);
-          const orig = copyBtn.textContent;
-          copyBtn.textContent = ok ? "✓ OK" : "ERR";
-          setTimeout(() => { copyBtn.textContent = orig; }, 1200);
+          return await copyText(snippet);
         });
         tdAction.append(copyBtn);
 
@@ -1456,16 +1504,10 @@ function initCatalogTabs(selectedGame, state, makeResultCard) {
     const pillW = element("span", "vtable-pill vtable-pill-w", `W: ${item.wIndex !== null ? item.wIndex : "—"}`);
     pillW.title = translate("vtableTooltipW");
 
-    const copyBtn = element("button", "btn-sm-action", "GameData");
-    copyBtn.type = "button";
-    copyBtn.title = "Скопировать блок для SourceMod GameData";
-    copyBtn.addEventListener("click", async () => {
+    const copyBtn = makeGameDataButton(async () => {
       const shortName = getMethodShortName(item.fullName);
       const snippet = `"${shortName}"\n{\n    "windows"    "${item.wIndex !== null ? item.wIndex : "0"}"\n    "linux"      "${item.lIndex}"\n}`;
-      const ok = await copyText(snippet);
-      const orig = copyBtn.textContent;
-      copyBtn.textContent = ok ? "✓ OK" : "ERR";
-      setTimeout(() => { copyBtn.textContent = orig; }, 1200);
+      return await copyText(snippet);
     });
 
     const openBtn = element("button", "btn-sm-action", translate("openInVTableTab"));
@@ -1518,20 +1560,14 @@ function initCatalogTabs(selectedGame, state, makeResultCard) {
     const pillL = element("span", "vtable-pill vtable-pill-l", `Linux: ${item.linux || "—"}${item.linux64 ? ` (x64: ${item.linux64})` : ""}`);
     const pillW = element("span", "vtable-pill vtable-pill-w", `Win: ${item.windows || "—"}${item.windows64 ? ` (x64: ${item.windows64})` : ""}`);
 
-    const copyBtn = element("button", "btn-sm-action", "GameData");
-    copyBtn.type = "button";
-    copyBtn.title = "Скопировать блок для SourceMod GameData";
-    copyBtn.addEventListener("click", async () => {
+    const copyBtn = makeGameDataButton(async () => {
       let snippet = `"${item.fullName}"\n{\n`;
       if (item.windows) snippet += `    "windows"      "${item.windows}"\n`;
       if (item.linux) snippet += `    "linux"        "${item.linux}"\n`;
       if (item.windows64) snippet += `    "windows64"    "${item.windows64}"\n`;
       if (item.linux64) snippet += `    "linux64"      "${item.linux64}"\n`;
       snippet += `}`;
-      const ok = await copyText(snippet);
-      const orig = copyBtn.textContent;
-      copyBtn.textContent = ok ? "✓ OK" : "ERR";
-      setTimeout(() => { copyBtn.textContent = orig; }, 1200);
+      return await copyText(snippet);
     });
 
     footer.append(pillL, pillW, copyBtn);
@@ -1720,6 +1756,503 @@ function initCatalogTabs(selectedGame, state, makeResultCard) {
     runGlobalSearch();
     if (catalogGlobalQuery) catalogGlobalQuery.focus();
     else globalQueryInput?.focus();
+  });
+}
+
+function initGameDataTool(selectedGame, state) {
+  const toolBtn = document.querySelector("#btn-gamedata-tool");
+  const modal = document.querySelector("#gamedata-modal");
+  const closeBtn = document.querySelector("#gamedata-modal-close");
+  const optUpdate = document.querySelector("#gamedata-opt-update");
+  const optFormat = document.querySelector("#gamedata-opt-format");
+  const optComments = document.querySelector("#gamedata-opt-comments");
+  const optIndent = document.querySelector("#gamedata-opt-indent");
+  const fileInput = document.querySelector("#gamedata-file-input");
+  const inputArea = document.querySelector("#gamedata-input");
+  const outputArea = document.querySelector("#gamedata-output");
+  const exampleBtn = document.querySelector("#gamedata-example-btn");
+  const clearBtn = document.querySelector("#gamedata-clear-btn");
+  const copyBtn = document.querySelector("#gamedata-copy-btn");
+  const downloadBtn = document.querySelector("#gamedata-download-btn");
+  const statsElem = document.querySelector("#gamedata-stats");
+  const processBtn = document.querySelector("#gamedata-process-btn");
+
+  if (!toolBtn || !modal) return;
+
+  toolBtn.addEventListener("click", () => {
+    modal.showModal();
+    if (!inputArea.value) {
+      inputArea.focus();
+    }
+  });
+
+  closeBtn?.addEventListener("click", () => modal.close());
+  modal.addEventListener("click", (e) => {
+    if (e.target === modal) modal.close();
+  });
+
+  fileInput?.addEventListener("change", (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = (event) => {
+      inputArea.value = event.target?.result || "";
+      fileInput.value = "";
+    };
+    reader.readAsText(file, "UTF-8");
+  });
+
+  const sampleGameData = `"Games"
+{
+	"tf"
+	{
+		// Common entity signatures
+		"Signatures"
+		{
+			"TakeDamage"
+			{
+				"library"	"server"
+				"linux"		"@_ZN11CBaseEntity10TakeDamageERK15CTakeDamageInfo"
+			}
+			"LookupAttachment"
+			{
+				"library"	"server"
+				"linux"		"@_ZN14CBaseAnimating16LookupAttachmentEPKc"
+			}
+			"CEconItemSchema::GetItemDefinition"
+			{
+				"library"	"server"
+				"linux"		"@_ZN15CEconItemSchema17GetItemDefinitionEi"
+			}
+		}
+		// Virtual methods & member offsets
+		"Offsets"
+		{
+			"CTFPlayer::GetMaxHealth"
+			{
+				"windows"	"123"
+				"linux"		"124"
+			}
+			"CEconItemDefinition::m_u8MinLevel"
+			{
+				"windows"	"17"
+				"linux"		"17"
+			}
+			"sizeof(CEconItemQualityDefinition)"
+			{
+				"windows"	"16"
+				"linux"		"16"
+			}
+		}
+	}
+}`;
+
+  exampleBtn?.addEventListener("click", () => {
+    inputArea.value = sampleGameData;
+    inputArea.focus();
+  });
+
+  clearBtn?.addEventListener("click", () => {
+    inputArea.value = "";
+    outputArea.value = "";
+    if (copyBtn) copyBtn.disabled = true;
+    if (downloadBtn) downloadBtn.disabled = true;
+    if (statsElem) statsElem.innerHTML = `<span class="muted">${translate("gamedataReadyPrompt")}</span>`;
+  });
+
+  copyBtn?.addEventListener("click", async () => {
+    if (!outputArea.value) return;
+    const ok = await copyText(outputArea.value);
+    const origText = copyBtn.textContent;
+    copyBtn.textContent = ok ? `✓ ${translate("copied")}` : translate("copyFailed");
+    setTimeout(() => { copyBtn.textContent = origText; }, 1400);
+  });
+
+  downloadBtn?.addEventListener("click", () => {
+    if (!outputArea.value) return;
+    const blob = new Blob([outputArea.value], { type: "text/plain;charset=utf-8" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = "gamedata_updated.txt";
+    document.body.append(a);
+    a.click();
+    a.remove();
+    URL.revokeObjectURL(url);
+  });
+
+  function tokenizeKeyValues(text) {
+    const tokens = [];
+    let i = 0;
+    const len = text.length;
+
+    while (i < len) {
+      const ch = text[i];
+      if (ch === "/" && text[i + 1] === "*") {
+        const start = i; i += 2;
+        while (i < len && !(text[i] === "*" && text[i + 1] === "/")) i++;
+        if (i < len) i += 2;
+        tokens.push({ type: "comment_block", value: text.slice(start, i), start, end: i });
+        continue;
+      }
+      if (ch === "/" && text[i + 1] === "/") {
+        const start = i;
+        while (i < len && text[i] !== "\n") i++;
+        tokens.push({ type: "comment_line", value: text.slice(start, i), start, end: i });
+        continue;
+      }
+      if (/\s/.test(ch)) {
+        const start = i;
+        while (i < len && /\s/.test(text[i])) i++;
+        tokens.push({ type: "whitespace", value: text.slice(start, i), start, end: i });
+        continue;
+      }
+      if (ch === "{") {
+        tokens.push({ type: "brace_open", value: "{", start: i, end: i + 1 });
+        i++;
+        continue;
+      }
+      if (ch === "}") {
+        tokens.push({ type: "brace_close", value: "}", start: i, end: i + 1 });
+        i++;
+        continue;
+      }
+      if (ch === '"') {
+        const start = i; i++;
+        let val = "";
+        while (i < len && text[i] !== '"') {
+          if (text[i] === "\\" && i + 1 < len) {
+            val += text[i] + text[i + 1];
+            i += 2;
+          } else {
+            val += text[i];
+            i++;
+          }
+        }
+        if (i < len) i++;
+        tokens.push({ type: "string", raw: text.slice(start, i), value: val, start, end: i });
+        continue;
+      }
+      const start = i;
+      while (i < len && !/\s|\{|\}|"|\//.test(text[i])) i++;
+      const val = text.slice(start, i);
+      tokens.push({ type: "unquoted", raw: val, value: val, start, end: i });
+    }
+    return tokens;
+  }
+
+  function parseKeyValuesAST(text) {
+    const tokens = tokenizeKeyValues(text);
+    let pos = 0;
+
+    function parseItems(untilCloseBrace = false) {
+      const items = [];
+      while (pos < tokens.length) {
+        const tok = tokens[pos];
+
+        if (tok.type === "whitespace") {
+          pos++;
+          continue;
+        }
+
+        if (tok.type === "comment_line" || tok.type === "comment_block") {
+          items.push({ type: "comment", value: tok.value });
+          pos++;
+          continue;
+        }
+
+        if (tok.type === "brace_close") {
+          if (untilCloseBrace) {
+            pos++;
+            break;
+          } else {
+            pos++;
+            continue;
+          }
+        }
+
+        if (tok.type === "string" || tok.type === "unquoted") {
+          const keyToken = tok;
+          pos++;
+
+          const commentsBetween = [];
+          while (pos < tokens.length && (tokens[pos].type === "whitespace" || tokens[pos].type.startsWith("comment_"))) {
+            if (tokens[pos].type.startsWith("comment_")) {
+              commentsBetween.push({ type: "comment", value: tokens[pos].value });
+            }
+            pos++;
+          }
+
+          if (pos >= tokens.length) {
+            items.push({ type: "pair", key: keyToken.value, value: "", rawKey: keyToken.raw, rawValue: "", keyToken });
+            break;
+          }
+
+          const nextTok = tokens[pos];
+          if (nextTok.type === "brace_open") {
+            pos++;
+            const sectionItems = parseItems(true);
+            items.push({
+              type: "section",
+              name: keyToken.value,
+              rawName: keyToken.raw,
+              keyToken,
+              items: [...commentsBetween, ...sectionItems],
+            });
+          } else if (nextTok.type === "string" || nextTok.type === "unquoted") {
+            pos++;
+            items.push({
+              type: "pair",
+              key: keyToken.value,
+              value: nextTok.value,
+              rawKey: keyToken.raw,
+              rawValue: nextTok.raw,
+              keyToken,
+              valueToken: nextTok,
+            });
+            if (commentsBetween.length) {
+              items.push(...commentsBetween);
+            }
+          }
+          continue;
+        }
+        pos++;
+      }
+      return items;
+    }
+
+    return parseItems(false);
+  }
+
+  function formatKeyValuesAST(items, indentUnit, preserveComments, level = 0) {
+    let out = "";
+    const indent = indentUnit.repeat(level);
+
+    let maxKeyLen = 0;
+    for (const item of items) {
+      if (item.type === "pair") {
+        const len = item.key.length + 2;
+        if (len > maxKeyLen) maxKeyLen = len;
+      }
+    }
+
+    for (let i = 0; i < items.length; i++) {
+      const item = items[i];
+      if (item.type === "comment") {
+        if (preserveComments) {
+          const lines = item.value.split("\n");
+          for (const line of lines) {
+            out += `${indent}${line.trim()}\n`;
+          }
+        }
+      } else if (item.type === "section") {
+        out += `${indent}"${item.name}"\n`;
+        out += `${indent}{\n`;
+        out += formatKeyValuesAST(item.items, indentUnit, preserveComments, level + 1);
+        out += `${indent}}\n`;
+      } else if (item.type === "pair") {
+        let sep = "\t";
+        const keyLen = item.key.length + 2;
+        if (indentUnit === "\t") {
+          const tabsNeeded = Math.max(1, Math.ceil((maxKeyLen + 3) / 4) - Math.floor(keyLen / 4));
+          sep = "\t".repeat(tabsNeeded);
+        } else {
+          const pad = Math.max(1, (maxKeyLen + 2) - keyLen);
+          sep = " ".repeat(pad);
+        }
+        out += `${indent}"${item.key}"${sep}"${item.value}"\n`;
+      }
+    }
+    return out;
+  }
+
+  processBtn?.addEventListener("click", async () => {
+    const rawText = inputArea.value;
+    if (!rawText.trim()) {
+      alert(translate("gamedataEmptyAlert"));
+      return;
+    }
+
+    const shouldUpdate = optUpdate ? optUpdate.checked : true;
+    const shouldFormat = optFormat ? optFormat.checked : true;
+    const shouldComments = optComments ? optComments.checked : true;
+    const indentStyle = optIndent?.value || "tab";
+    const indentUnit = indentStyle === "spaces4" ? "    " : indentStyle === "spaces2" ? "  " : "\t";
+
+    if (statsElem) {
+      statsElem.textContent = translate("loadingIndex");
+    }
+
+    // Ensure vtables and catalog data are available
+    let vData = null;
+    try {
+      const file = selectedGame === "tf2c" ? "./data/tf2c-vtables.json" : "./data/tf2-vtables.json";
+      const res = await fetch(file);
+      if (res.ok) vData = await res.json();
+    } catch (e) {
+      console.warn("Could not load vtables for tool", e);
+    }
+
+    const sigsByName = new Map();
+    const sigsByShortName = new Map();
+    if (state.index?.entries) {
+      for (const entry of state.index.entries) {
+        sigsByName.set(entry.name.toLowerCase(), entry);
+        const short = getMethodShortName(entry.name).toLowerCase();
+        if (!sigsByShortName.has(short)) sigsByShortName.set(short, entry);
+      }
+    }
+
+    const vtableByClassMethod = new Map();
+    const vtableByMethod = new Map();
+    if (vData?.classes) {
+      for (const [className, info] of Object.entries(vData.classes)) {
+        info.methods.forEach(([wIndex, fullName], lIndex) => {
+          const short = getMethodShortName(fullName).toLowerCase();
+          const item = { lIndex, wIndex, className, fullName };
+          vtableByClassMethod.set(`${className.toLowerCase()}::${short}`, item);
+          vtableByClassMethod.set(`${className.toLowerCase()}::${fullName.toLowerCase()}`, item);
+          if (!vtableByMethod.has(short)) vtableByMethod.set(short, []);
+          vtableByMethod.get(short).push(item);
+        });
+      }
+    }
+
+    const ast = parseKeyValuesAST(rawText);
+    let sigsCount = 0;
+    let sigsUpdatedCount = 0;
+    let offsetsCount = 0;
+    let offsetsUpdatedCount = 0;
+    const replacements = [];
+
+    if (shouldUpdate) {
+      function walk(items, path = []) {
+        for (const item of items) {
+          if (item.type === "section") {
+            const parent = path[path.length - 1]?.toLowerCase();
+            if (parent === "signatures") {
+              sigsCount++;
+              const sigMatch = sigsByName.get(item.name.toLowerCase()) || sigsByShortName.get(item.name.toLowerCase());
+              if (sigMatch) {
+                let updatedThis = false;
+                let hasLinux64 = false;
+                for (const sub of item.items) {
+                  if (sub.type === "pair") {
+                    const k = sub.key.toLowerCase();
+                    if (k === "linux" && sigMatch.linux && sub.value !== sigMatch.linux) {
+                      if (!shouldFormat && sub.valueToken) {
+                        replacements.push({ start: sub.valueToken.start, end: sub.valueToken.end, text: `"${sigMatch.linux}"` });
+                      }
+                      sub.value = sigMatch.linux;
+                      updatedThis = true;
+                    }
+                    if (k === "linux64" && sigMatch.linux64) {
+                      hasLinux64 = true;
+                      if (sub.value !== sigMatch.linux64) {
+                        if (!shouldFormat && sub.valueToken) {
+                          replacements.push({ start: sub.valueToken.start, end: sub.valueToken.end, text: `"${sigMatch.linux64}"` });
+                        }
+                        sub.value = sigMatch.linux64;
+                        updatedThis = true;
+                      }
+                    }
+                  }
+                }
+                if (!hasLinux64 && sigMatch.linux64) {
+                  item.items.push({ type: "pair", key: "linux64", value: sigMatch.linux64 });
+                  updatedThis = true;
+                }
+                if (updatedThis) sigsUpdatedCount++;
+              }
+            } else if (parent === "offsets") {
+              offsetsCount++;
+              const key = item.name.toLowerCase();
+              let target = null;
+              if (vData?.offsets && vData.offsets[key]) {
+                const o = vData.offsets[key];
+                target = {
+                  linux: o.linux !== undefined ? String(o.linux) : undefined,
+                  windows: o.windows !== undefined ? String(o.windows) : undefined,
+                  linux64: o.linux64 !== undefined ? String(o.linux64) : undefined,
+                  windows64: o.windows64 !== undefined ? String(o.windows64) : undefined,
+                };
+              }
+              if (!target && key.includes("::") && vtableByClassMethod.has(key)) {
+                const vm = vtableByClassMethod.get(key);
+                target = {
+                  linux: String(vm.lIndex),
+                  windows: vm.wIndex !== null ? String(vm.wIndex) : undefined,
+                };
+              }
+              if (!target && vtableByMethod.has(key)) {
+                const list = vtableByMethod.get(key);
+                const vm = list.find((m) => ["cbaseentity", "ctfplayer", "cbasecombatcharacter"].includes(m.className.toLowerCase())) || list[0];
+                if (vm) {
+                  target = {
+                    linux: String(vm.lIndex),
+                    windows: vm.wIndex !== null ? String(vm.wIndex) : undefined,
+                  };
+                }
+              }
+
+              if (target) {
+                let updatedThis = false;
+                for (const sub of item.items) {
+                  if (sub.type === "pair") {
+                    const k = sub.key.toLowerCase();
+                    if (target[k] !== undefined && sub.value !== target[k]) {
+                      if (!shouldFormat && sub.valueToken) {
+                        replacements.push({ start: sub.valueToken.start, end: sub.valueToken.end, text: `"${target[k]}"` });
+                      }
+                      sub.value = target[k];
+                      updatedThis = true;
+                    }
+                  }
+                }
+                if (target.linux64 !== undefined && !item.items.some((p) => p.type === "pair" && p.key.toLowerCase() === "linux64")) {
+                  item.items.push({ type: "pair", key: "linux64", value: target.linux64 });
+                  updatedThis = true;
+                }
+                if (target.windows64 !== undefined && !item.items.some((p) => p.type === "pair" && p.key.toLowerCase() === "windows64")) {
+                  item.items.push({ type: "pair", key: "windows64", value: target.windows64 });
+                  updatedThis = true;
+                }
+                if (updatedThis) offsetsUpdatedCount++;
+              }
+            }
+            walk(item.items, [...path, item.name]);
+          }
+        }
+      }
+      walk(ast);
+    }
+
+    let finalResult = "";
+    if (shouldFormat) {
+      finalResult = formatKeyValuesAST(ast, indentUnit, shouldComments);
+    } else if (replacements.length > 0) {
+      replacements.sort((a, b) => b.start - a.start);
+      let s = rawText;
+      for (const rep of replacements) {
+        s = s.slice(0, rep.start) + rep.text + s.slice(rep.end);
+      }
+      finalResult = s;
+    } else {
+      finalResult = rawText;
+    }
+
+    outputArea.value = finalResult;
+    if (copyBtn) copyBtn.disabled = false;
+    if (downloadBtn) downloadBtn.disabled = false;
+
+    if (statsElem) {
+      statsElem.innerHTML = `<strong>${translate("gamedataStatsResult", {
+        sigs: formatNumber(sigsCount),
+        sigsUp: formatNumber(sigsUpdatedCount),
+        offsets: formatNumber(offsetsCount),
+        offsetsUp: formatNumber(offsetsUpdatedCount),
+      })}</strong>`;
+    }
   });
 }
 

@@ -95,25 +95,30 @@
           <div class="catalog-heading-left">
             <div class="catalog-tabs" role="tablist" aria-label="Разделы каталога">
               <button id="tab-signatures" type="button" class="catalog-tab active" role="tab" aria-selected="true" data-tab="signatures">
-                <span>⚡</span>
+                <svg class="tab-icon" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
                 <span data-i18n="tabSignatures">Сигнатуры</span>
                 <span id="tab-signatures-badge" class="tab-badge">61.5k</span>
               </button>
               <button id="tab-vtables" type="button" class="catalog-tab" role="tab" aria-selected="false" data-tab="vtables">
-                <span>📋</span>
+                <svg class="tab-icon" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18"/><path d="M9 21V9"/></svg>
                 <span data-i18n="tabVtables">VTable</span>
                 <span id="tab-vtables-badge" class="tab-badge">232k</span>
               </button>
             </div>
             <div class="catalog-global-search">
-              <span class="catalog-global-icon" aria-hidden="true">🔍</span>
+              <svg class="catalog-global-icon" viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
               <input id="catalog-global-query" type="search" autocomplete="off" placeholder="Общий поиск…" data-i18n-placeholder="searchGlobalPlaceholder" />
             </div>
             <p id="game-note" class="game-note" data-i18n="classifiedOnlyX64" hidden>Для Classified доступны только сигнатуры Linux x64.</p>
           </div>
           <div class="catalog-heading-actions">
+            <button id="btn-gamedata-tool" type="button" class="button button-gamedata-tool">
+              <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/></svg>
+              <span data-i18n="gamedataToolButton">Обновление GameData</span>
+            </button>
             <button id="btn-changelog" type="button" class="button button-changelog" hidden>
-              <span>🕒</span> <span data-i18n="changelogButton">Журнал обновлений</span>
+              <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+              <span data-i18n="changelogButton">Журнал обновлений</span>
             </button>
           </div>
         </div>
@@ -321,6 +326,70 @@
         </div>
         <div id="changelog-body" class="modal-body">
           <div class="state"><span data-i18n="loadingIndex">Загрузка журнала…</span></div>
+        </div>
+      </div>
+    </dialog>
+
+    <dialog id="gamedata-modal" class="modal-dialog modal-dialog-wide">
+      <div class="modal-card">
+        <header class="modal-header">
+          <div>
+            <h2 id="gamedata-modal-title" data-i18n="gamedataToolTitle">Обновление и структуризация GameData</h2>
+            <p class="muted" data-i18n="gamedataToolSubtitle">Вставьте текст вашего файла или загрузите .txt — инструмент обновит устаревшие сигнатуры и смещения по базе сервера Valve и выровняет форматирование.</p>
+          </div>
+          <button id="gamedata-modal-close" type="button" class="button modal-close-btn" aria-label="Закрыть">&times;</button>
+        </header>
+        <div class="gamedata-options-bar">
+          <label class="checkbox-label">
+            <input type="checkbox" id="gamedata-opt-update" checked />
+            <span data-i18n="gamedataOptUpdate">Обновлять сигнатуры и оффсеты</span>
+          </label>
+          <label class="checkbox-label">
+            <input type="checkbox" id="gamedata-opt-format" checked />
+            <span data-i18n="gamedataOptFormat">Структурировать отступы</span>
+          </label>
+          <label class="checkbox-label">
+            <input type="checkbox" id="gamedata-opt-comments" checked />
+            <span data-i18n="gamedataOptComments">Сохранять комментарии</span>
+          </label>
+          <label class="select-label">
+            <span data-i18n="gamedataIndentLabel">Отступы:</span>
+            <select id="gamedata-opt-indent">
+              <option value="tabs" selected data-i18n="gamedataIndentTabs">Табуляция (AlliedMods)</option>
+              <option value="spaces4" data-i18n="gamedataIndentSpaces4">4 пробела</option>
+              <option value="spaces2" data-i18n="gamedataIndentSpaces2">2 пробела</option>
+            </select>
+          </label>
+          <label class="file-upload-btn">
+            <input type="file" id="gamedata-file-input" accept=".txt,.games" hidden />
+            <span data-i18n="gamedataUploadBtn">📂 Загрузить файл</span>
+          </label>
+        </div>
+        <div class="gamedata-workspace">
+          <div class="gamedata-pane">
+            <div class="gamedata-pane-header">
+              <span data-i18n="gamedataInputHeader">Исходный GameData</span>
+              <button id="gamedata-btn-example" type="button" class="btn-xs" data-i18n="gamedataExampleBtn">Вставить пример</button>
+            </div>
+            <textarea id="gamedata-input" class="gamedata-textarea" placeholder="Вставьте сюда содержимое вашего .txt файла GameData (например: TF2_UTILs.txt или свой плагин)..." spellcheck="false"></textarea>
+          </div>
+          <div class="gamedata-pane">
+            <div class="gamedata-pane-header">
+              <span data-i18n="gamedataOutputHeader">Обновлённый результат</span>
+              <div class="gamedata-pane-actions">
+                <button id="gamedata-btn-copy" type="button" class="btn-xs" disabled data-i18n="copy">Копировать</button>
+                <button id="gamedata-btn-download" type="button" class="btn-xs" disabled data-i18n="download">Скачать .txt</button>
+              </div>
+            </div>
+            <textarea id="gamedata-output" class="gamedata-textarea" placeholder="Здесь появится обновлённый и выровненный GameData..." readonly spellcheck="false"></textarea>
+          </div>
+        </div>
+        <div class="gamedata-footer">
+          <div id="gamedata-stats" class="gamedata-stats-summary muted" data-i18n="gamedataReadyPrompt">Вставьте данные и нажмите «Обработать GameData»</div>
+          <button id="gamedata-btn-process" type="button" class="button button-accent">
+            <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+            <span data-i18n="gamedataProcessBtn">Обработать GameData</span>
+          </button>
         </div>
       </div>
     </dialog>
