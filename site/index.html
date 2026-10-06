@@ -90,7 +90,12 @@
             <h2 id="catalog-title" data-i18n="catalogTitle">Список сигнатур</h2>
             <p id="game-note" class="game-note" data-i18n="classifiedOnlyX64" hidden>Для Classified доступны только сигнатуры Linux x64.</p>
           </div>
-          <div id="data-version" class="muted"></div>
+          <div class="catalog-heading-actions">
+            <button id="btn-changelog" type="button" class="button button-changelog" hidden>
+              <span>🕒</span> <span data-i18n="changelogButton">Журнал обновлений оффсетов</span>
+            </button>
+            <div id="data-version" class="muted"></div>
+          </div>
         </div>
 
         <section class="panel search-panel" aria-labelledby="search-title">
@@ -101,8 +106,8 @@
           </div>
 
           <label class="field search-field" for="query">
-            <span data-i18n="queryLabel">Название или часть названия</span>
-            <input id="query" type="search" autocomplete="off" placeholder="Например: AddEmptyMesh" data-i18n-placeholder="queryPlaceholder" />
+            <span data-i18n="queryLabel">Название, сигнатура или оффсет (0x...)</span>
+            <input id="query" type="search" autocomplete="off" placeholder="Например: AddEmptyMesh или 0x91460" data-i18n-placeholder="queryPlaceholder" />
           </label>
 
           <div class="filters" aria-label="Фильтры">
@@ -159,10 +164,28 @@
       </section>
     </main>
 
+    <dialog id="changelog-modal" class="modal-dialog">
+      <div class="modal-card">
+        <header class="modal-header">
+          <div>
+            <h2 id="modal-title" data-i18n="changelogTitle">Журнал обновлений оффсетов и сигнатур</h2>
+            <p id="changelog-meta" class="muted"></p>
+          </div>
+          <button id="modal-close" type="button" class="button modal-close-btn" aria-label="Закрыть">&times;</button>
+        </header>
+        <div class="modal-search-row">
+          <input id="changelog-search" type="search" placeholder="Поиск по изменённым функциям..." autocomplete="off" />
+        </div>
+        <div id="changelog-body" class="modal-body">
+          <div class="state"><span data-i18n="loadingIndex">Загрузка журнала…</span></div>
+        </div>
+      </div>
+    </dialog>
+
     <footer class="footer">
       <span data-i18n="footer">GameData Catalog · локальный индекс SourceMod</span>
       <a href="https://github.com/MrPanica/TF2-Gamedata" target="_blank" rel="noreferrer" data-i18n="sourceRepository">Исходный репозиторий ↗</a>
     </footer>
-    <script type="module" src="./app.js?v=5"></script>
+    <script type="module" src="./app.js?v=6"></script>
   </body>
 </html>

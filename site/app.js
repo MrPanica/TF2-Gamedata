@@ -28,11 +28,23 @@ const translations = {
     catalogAria: "Список сигнатур",
     catalogTitle: "Список сигнатур",
     searchTitle: "Поиск и фильтры",
-    queryLabel: "Название или часть названия",
-    queryPlaceholder: "Например: AddEmptyMesh",
+    queryLabel: "Название, сигнатура или оффсет (0x...)",
+    queryPlaceholder: "Например: AddEmptyMesh или 0x91460",
     libraryLabel: "Библиотека",
     architectureLabel: "Архитектура",
     kindLabel: "Тип",
+    offsetLabel: "Оффсет",
+    copyOffset: "Копировать оффсет",
+    changelogButton: "Журнал обновлений",
+    changelogTitle: "Журнал обновлений оффсетов и сигнатур",
+    oldOffsetLabel: "Было",
+    newOffsetLabel: "Стало",
+    diffLabel: "Сдвиг",
+    functionNameCol: "Функция",
+    libraryCol: "Библиотека / Платформа",
+    searchChangelogPlaceholder: "Поиск по изменённым функциям...",
+    showInCatalog: "Открыть в каталоге",
+    noUpdatesFound: "Изменений по запросу не найдено.",
     all: "Все",
     allEntries: "Все записи",
     linuxX86: "x86",
@@ -92,11 +104,23 @@ const translations = {
     catalogAria: "Signature list",
     catalogTitle: "Signature list",
     searchTitle: "Search and filters",
-    queryLabel: "Name or part of a name",
-    queryPlaceholder: "For example: AddEmptyMesh",
+    queryLabel: "Name, signature, or offset (0x...)",
+    queryPlaceholder: "For example: AddEmptyMesh or 0x91460",
     libraryLabel: "Library",
     architectureLabel: "Architecture",
     kindLabel: "Type",
+    offsetLabel: "Offset",
+    copyOffset: "Copy offset",
+    changelogButton: "Update Changelog",
+    changelogTitle: "Signatures & Offsets Changelog",
+    oldOffsetLabel: "Previous",
+    newOffsetLabel: "Current",
+    diffLabel: "Shift",
+    functionNameCol: "Function",
+    libraryCol: "Library / Platform",
+    searchChangelogPlaceholder: "Search updated functions...",
+    showInCatalog: "Open in catalog",
+    noUpdatesFound: "No changes matching query.",
     all: "All",
     allEntries: "All entries",
     linuxX86: "x86",
@@ -256,17 +280,23 @@ export function filterEntries(entries, filters) {
     }
 
     if (!query) return true;
+    const cleanHex = query.startsWith("0x") ? query.slice(2) : query;
+    const isHex = /^[0-9a-f]{3,8}$/i.test(cleanHex);
     const searchable = [
       entry.name,
       entry.library,
       entry.sourceFile,
       entry.linux?.value,
       entry.linux64?.value,
+      ...(entry.linux?.offsets ?? []),
+      ...(entry.linux64?.offsets ?? []),
     ]
       .filter(Boolean)
       .join(" ")
       .toLocaleLowerCase();
-    return searchable.includes(query);
+    if (searchable.includes(query)) return true;
+    if (isHex && searchable.includes(`0x${cleanHex}`)) return true;
+    return false;
   });
 }
 
@@ -417,6 +447,21 @@ function makePlatformBlock(label, signature) {
   copy.append(makeCopyIcon());
   codeRow.append(code, copy);
   block.append(codeRow);
+
+  if (signature.offsets && signature.offsets.length) {
+    const offsetBar = element("div", "offset-bar");
+    const offsetTag = element("span", "offset-tag", translate("offsetLabel"));
+    const offsetVal = element("code", "offset-highlight", signature.offsets.join(", "));
+    const copyOffsetBtn = element("button", "button button-copy button-copy-offset");
+    copyOffsetBtn.type = "button";
+    copyOffsetBtn.dataset.copyValue = signature.offsets.join(", ");
+    copyOffsetBtn.title = translate("copyOffset");
+    copyOffsetBtn.setAttribute("aria-label", translate("copyOffset"));
+    copyOffsetBtn.append(makeCopyIcon());
+    offsetBar.append(offsetTag, offsetVal, copyOffsetBtn);
+    block.append(offsetBar);
+  }
+
   return block;
 }
 
@@ -623,13 +668,149 @@ function init() {
       renderSummary(index, selectedGame);
       loading.hidden = true;
       applyFilters();
+      initChangelog();
     })
     .catch((loadError) => {
       loading.hidden = true;
       error.textContent = translate("loadError", { message: loadError.message });
       error.hidden = false;
       status.textContent = translate("loadErrorStatus");
+      initChangelog();
     });
+}
+
+function initChangelog() {
+  const changelogBtn = document.querySelector("#btn-changelog");
+  const modal = document.querySelector("#changelog-modal");
+  const closeBtn = document.querySelector("#modal-close");
+  const body = document.querySelector("#changelog-body");
+  const searchInput = document.querySelector("#changelog-search");
+  const meta = document.querySelector("#changelog-meta");
+  if (!changelogBtn || !modal) return;
+
+  let updatesData = null;
+
+  async function loadUpdates() {
+    try {
+      const res = await fetch("./data/updates.json", { cache: "no-store" });
+      if (!res.ok) return;
+      updatesData = await res.json();
+      if (updatesData?.updates?.length) {
+        changelogBtn.hidden = false;
+        const latest = updatesData.updates[0];
+        const countStr = latest.stats?.totalChanged ? formatNumber(latest.stats.totalChanged) : "";
+        const label = changelogBtn.querySelector("[data-i18n='changelogButton']");
+        if (label) label.textContent = `${translate("changelogButton")} (${countStr})`;
+      }
+    } catch {
+      // Ignore if updates.json is not present
+    }
+  }
+
+  function renderChangelogList(filterText = "") {
+    if (!body || !updatesData?.updates) return;
+    const filter = filterText.trim().toLowerCase();
+    body.replaceChildren();
+
+    updatesData.updates.forEach((update) => {
+      const card = element("div", "changelog-entry-card");
+      const header = element("div", "changelog-entry-header");
+      const title = element("h3", "changelog-entry-title", update.title || update.buildId);
+      const date = element("span", "changelog-entry-date", formatDate(update.date));
+      header.append(title, date);
+
+      const statsRow = element("div", "changelog-stats-row");
+      if (update.stats) {
+        statsRow.append(
+          element("span", "badge badge-accent", `engine Linux: +${formatNumber(update.stats.engineLinux)}`),
+          element("span", "badge badge-accent", `engine Linux64: +${formatNumber(update.stats.engineLinux64)}`),
+          element("span", "badge badge-library", `server Linux: +${formatNumber(update.stats.serverLinux)}`),
+          element("span", "badge badge-library", `server Linux64: +${formatNumber(update.stats.serverLinux64)}`),
+          element("span", "badge badge-warning", `Всего: ${formatNumber(update.stats.totalChanged)}`),
+        );
+      }
+
+      const tableWrap = element("div", "changelog-table-wrap");
+      const table = element("table", "changelog-table");
+      const thead = element("thead");
+      const headRow = element("tr");
+      headRow.append(
+        element("th", "", translate("functionNameCol")),
+        element("th", "", translate("libraryCol")),
+        element("th", "", translate("oldOffsetLabel")),
+        element("th", "", translate("newOffsetLabel")),
+      );
+      thead.append(headRow);
+      table.append(thead);
+
+      const tbody = element("tbody");
+      const samples = (update.sampleChanges || []).filter((item) => {
+        if (!filter) return true;
+        return (
+          item.name.toLowerCase().includes(filter) ||
+          item.oldOffset.toLowerCase().includes(filter) ||
+          item.newOffset.toLowerCase().includes(filter)
+        );
+      });
+
+      if (samples.length === 0) {
+        const tr = element("tr");
+        const td = element("td", "muted", translate("noUpdatesFound"));
+        td.colSpan = 4;
+        tr.append(td);
+        tbody.append(tr);
+      } else {
+        samples.slice(0, 150).forEach((item) => {
+          const tr = element("tr");
+          const tdName = element("td", "changelog-func-name");
+          const nameLink = element("button", "link-button", item.name);
+          nameLink.type = "button";
+          nameLink.title = translate("showInCatalog");
+          nameLink.addEventListener("click", () => {
+            modal.close();
+            const q = document.querySelector("#query");
+            if (q) {
+              q.value = item.name;
+              q.dispatchEvent(new Event("input", { bubbles: true }));
+              q.scrollIntoView({ behavior: "smooth" });
+            }
+          });
+          tdName.append(nameLink);
+
+          const tdLib = element("td", "", `${item.library} (${item.platform === "linux64" ? "x64" : "x86"})`);
+          const tdOld = element("td", "changelog-offset-old", item.oldOffset);
+          const tdNew = element("td", "changelog-offset-new", item.newOffset);
+          tr.append(tdName, tdLib, tdOld, tdNew);
+          tbody.append(tr);
+        });
+      }
+
+      table.append(tbody);
+      tableWrap.append(table);
+      card.append(header, statsRow, tableWrap);
+      body.append(card);
+    });
+  }
+
+  changelogBtn.addEventListener("click", () => {
+    modal.showModal();
+    if (meta && updatesData?.latestBuild) {
+      meta.textContent = `${translate("currentFiles")}: build ${updatesData.latestBuild} (${formatDate(updatesData.updatedAt)})`;
+    }
+    renderChangelogList(searchInput?.value || "");
+    searchInput?.focus();
+  });
+
+  closeBtn?.addEventListener("click", () => modal.close());
+  modal.addEventListener("click", (e) => {
+    if (e.target === modal) modal.close();
+  });
+
+  searchInput?.addEventListener("input", () => {
+    renderChangelogList(searchInput.value);
+  });
+
+  loadUpdates();
 }
 
 if (typeof document !== "undefined") {

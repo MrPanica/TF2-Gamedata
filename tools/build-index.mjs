@@ -272,6 +272,11 @@ export function writeBuild(root = ROOT) {
   const manifest = buildCatalogManifest(catalog);
   fs.writeFileSync(path.join(dist, "data", "catalog-manifest.json"), `${JSON.stringify(manifest)}\n`, "utf8");
 
+  const updatesHistoryPath = path.join(root, "artifacts", "tf2-updates-history.json");
+  if (fs.existsSync(updatesHistoryPath)) {
+    fs.copyFileSync(updatesHistoryPath, path.join(dist, "data", "updates.json"));
+  }
+
   return { catalog, dist };
 }
 

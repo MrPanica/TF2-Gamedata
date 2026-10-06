@@ -296,6 +296,28 @@ test("filters entries by partial name, library, architecture, and kind", () => {
   assert.equal(filterEntries(entries, { query: "", source: "all", arch: "linux", kind: "byte-pattern" }).length, 1);
 });
 
+test("filters entries by module offset hex value with or without 0x prefix", () => {
+  const entries = [
+    {
+      name: "Alpha()",
+      library: "engine",
+      linux: { value: "@_ZAlpha", kind: "symbol", offsets: ["0x91460"] },
+      linux64: { value: "@_ZAlpha", kind: "symbol", offsets: ["0x65310"] },
+    },
+    {
+      name: "Beta()",
+      library: "server",
+      linux: { value: "@_ZBeta", kind: "symbol", offsets: ["0x1200"] },
+      linux64: null,
+    },
+  ];
+
+  assert.equal(filterEntries(entries, { query: "0x91460", source: "all", arch: "all", kind: "all" }).length, 1);
+  assert.equal(filterEntries(entries, { query: "91460", source: "all", arch: "all", kind: "all" }).length, 1);
+  assert.equal(filterEntries(entries, { query: "0x65310", source: "all", arch: "all", kind: "all" }).length, 1);
+  assert.equal(filterEntries(entries, { query: "0x99999", source: "all", arch: "all", kind: "all" }).length, 0);
+});
+
 test("formats module offsets with a localized tooltip instead of the raw technical label", () => {
   assert.deepEqual(formatModuleOffset(["0x1230"], "ru"), {
     text: "Смещение в модуле: 0x1230",

@@ -74,6 +74,8 @@ def update_gamedata_file(
     file_path: Path,
     symbols_32: dict[str, str],
     symbols_64: dict[str, str],
+    library: str = "server",
+    changed_samples: list[dict] | None = None,
     dry_run: bool = False
 ) -> dict[str, int]:
     """Update // linux: and // linux64: offset comments in a GameData file."""
@@ -95,21 +97,25 @@ def update_gamedata_file(
     }
 
     pending_offset: dict[str, tuple[int, str, str] | None] = {"linux": None, "linux64": None}
+    current_name = ""
 
     comment_pattern = re.compile(r"^(\s*)//\s*(linux|linux64)\s*:\s*(.+?)\s*$")
     symbol_pattern = re.compile(r"^(\s*)\"(linux|linux64)\"\s+\"@((?:\\.|[^\"])*)\"\s*$")
     name_pattern = re.compile(r'^(?: {12,}|\t{3,})"((?:\\.|[^"])*)"\s*$')
 
     for line in lines:
-        # Check if new entry started or block closed
-        if name_pattern.match(line) or line.strip() == "}":
+        name_m = name_pattern.match(line)
+        if name_m:
+            current_name = name_m.group(1)
+            pending_offset["linux"] = None
+            pending_offset["linux64"] = None
+        elif line.strip() == "}":
             pending_offset["linux"] = None
             pending_offset["linux64"] = None
 
         comment_match = comment_pattern.match(line)
         if comment_match:
             indent, platform, old_offset = comment_match.groups()
-            # Store pending comment to be confirmed/updated by following symbol line
             pending_offset[platform] = (len(updated_lines), indent, old_offset)
             updated_lines.append(line)
             continue
@@ -126,13 +132,28 @@ def update_gamedata_file(
                     if old_offset != new_offset:
                         updated_lines[target_idx] = f"{target_indent}// {platform}: {new_offset}\n"
                         stats[f"{platform}_updated"] += 1
+                        if changed_samples is not None:
+                            changed_samples.append({
+                                "name": current_name,
+                                "library": library,
+                                "platform": platform,
+                                "oldOffset": old_offset,
+                                "newOffset": new_offset
+                            })
                     else:
                         stats[f"{platform}_unchanged"] += 1
                     pending_offset[platform] = None
                 else:
-                    # Insert comment before symbol line
                     updated_lines.append(f"{indent}// {platform}: {new_offset}\n")
                     stats[f"{platform}_updated"] += 1
+                    if changed_samples is not None:
+                        changed_samples.append({
+                            "name": current_name,
+                            "library": library,
+                            "platform": platform,
+                            "oldOffset": "none",
+                            "newOffset": new_offset
+                        })
             else:
                 if pending_offset[platform] is not None:
                     stats[f"{platform}_missing"] += 1
@@ -190,6 +211,62 @@ def update_reviewed_byte_patterns(
     return updated_count
 
 
+def record_updates_history(
+    history_path: Path,
+    build_id: str,
+    stats_engine: dict[str, int],
+    stats_server: dict[str, int],
+    changes: list[dict],
+    dry_run: bool = False
+) -> None:
+    """Save update summary and sample offset changes into artifacts/tf2-updates-history.json."""
+    total_changed = (
+        stats_engine.get("linux_updated", 0) + stats_engine.get("linux64_updated", 0) +
+        stats_server.get("linux_updated", 0) + stats_server.get("linux64_updated", 0)
+    )
+    if total_changed == 0:
+        return
+
+    history = {
+        "schemaVersion": 1,
+        "latestBuild": build_id or "auto",
+        "updatedAt": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()),
+        "updates": []
+    }
+    if history_path.exists():
+        try:
+            with open(history_path, "r", encoding="utf-8") as f:
+                history = json.load(f)
+        except Exception:
+            pass
+
+    history["latestBuild"] = build_id or "auto"
+    history["updatedAt"] = time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime())
+    new_update = {
+        "buildId": build_id or "auto",
+        "date": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()),
+        "title": f"Обновление TF2 (build {build_id})" if build_id else "Обновление TF2",
+        "description": "Синхронизация смещений и адресов символов из серверного депо",
+        "stats": {
+            "engineLinux": stats_engine.get("linux_updated", 0),
+            "engineLinux64": stats_engine.get("linux64_updated", 0),
+            "serverLinux": stats_server.get("linux_updated", 0),
+            "serverLinux64": stats_server.get("linux64_updated", 0),
+            "totalChanged": total_changed,
+        },
+        "sampleCount": min(len(changes), 1000),
+        "sampleChanges": changes[:1000]
+    }
+    history.setdefault("updates", []).insert(0, new_update)
+    history["updates"] = history["updates"][:10]
+
+    if not dry_run:
+        with open(history_path, "w", encoding="utf-8") as f:
+            json.dump(history, f, ensure_ascii=False, indent=2)
+            f.write("\n")
+    print(f"[*] Recorded {total_changed} changes to {history_path.name}")
+
+
 def git_commit_and_push(repo_dir: Path, build_id: str = "") -> bool:
     """Commit changes to git and push to origin main."""
     print("[*] Checking git status...")
@@ -208,6 +285,7 @@ def git_commit_and_push(repo_dir: Path, build_id: str = "") -> bool:
         "tf2-function-signatures.game.engine.txt",
         "tf2-function-signatures.game.server.txt",
         "artifacts/reviewed-linux-byte-patterns.json",
+        "artifacts/tf2-updates-history.json",
     ]
     for file_name in files_to_add:
         p = repo_dir / file_name
@@ -242,15 +320,25 @@ def main() -> int:
     symbols_server32 = extract_symbols_from_nm(args.server32) if args.server32 else {}
     symbols_server64 = extract_symbols_from_nm(args.server64) if args.server64 else {}
 
+    changed_samples: list[dict] = []
+    stats_engine = {}
+    stats_server = {}
+
     # Update engine signatures
     engine_file = repo_dir / "tf2-function-signatures.game.engine.txt"
     if symbols_engine32 or symbols_engine64:
-        update_gamedata_file(engine_file, symbols_engine32, symbols_engine64, dry_run=args.dry_run)
+        stats_engine = update_gamedata_file(
+            engine_file, symbols_engine32, symbols_engine64,
+            library="engine", changed_samples=changed_samples, dry_run=args.dry_run
+        )
 
     # Update server signatures
     server_file = repo_dir / "tf2-function-signatures.game.server.txt"
     if symbols_server32 or symbols_server64:
-        update_gamedata_file(server_file, symbols_server32, symbols_server64, dry_run=args.dry_run)
+        stats_server = update_gamedata_file(
+            server_file, symbols_server32, symbols_server64,
+            library="server", changed_samples=changed_samples, dry_run=args.dry_run
+        )
 
     # Update byte-patterns
     patterns_file = repo_dir / "artifacts" / "reviewed-linux-byte-patterns.json"
@@ -258,6 +346,11 @@ def main() -> int:
     all_syms_64 = {**symbols_engine64, **symbols_server64}
     if all_syms_32 or all_syms_64:
         update_reviewed_byte_patterns(patterns_file, all_syms_32, all_syms_64, dry_run=args.dry_run)
+
+    # Record history
+    history_file = repo_dir / "artifacts" / "tf2-updates-history.json"
+    if changed_samples:
+        record_updates_history(history_file, args.build_id, stats_engine, stats_server, changed_samples, dry_run=args.dry_run)
 
     # If git push requested and not dry run
     if args.git_push and not args.dry_run:
