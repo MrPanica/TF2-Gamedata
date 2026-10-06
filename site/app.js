@@ -17,13 +17,13 @@ const translations = {
     titleTf2c: "Каталог GameData — Team Fortress 2 Classified",
     openTf2: "Открыть каталог Team Fortress 2",
     openTf2c: "Открыть каталог Team Fortress 2 Classified",
-    tf2Stamp: "Linux x86 / x64",
-    tf2Description: "Сигнатуры движка и сервера.",
+    tf2Stamp: "Linux x86 / x64 · Live Updates",
+    tf2Description: "Живой каталог сигнатур и смещений движка и сервера (автоматическое обновление).",
     entriesLabel: "записей",
     signatureCount: "сигнатур",
     symbolCount: "ELF symbols",
-    classifiedStamp: "Только Linux x64",
-    classifiedDescription: "ELF-символы Linux x64 сверены с бинарниками сборки.",
+    classifiedStamp: "Архив · Linux x64 (21.08.2026)",
+    classifiedDescription: "Архивный снимок от 21.08.2026 (поддержка заморожена).",
     classifiedOnlyX64: "Для Classified доступны только сигнатуры Linux x64.",
     catalogAria: "Список сигнатур",
     catalogTitle: "Список сигнатур",
@@ -81,13 +81,13 @@ const translations = {
     titleTf2c: "GameData Catalog — Team Fortress 2 Classified",
     openTf2: "Open the Team Fortress 2 catalog",
     openTf2c: "Open the Team Fortress 2 Classified catalog",
-    tf2Stamp: "Linux x86 / x64",
-    tf2Description: "Linux symbols and reviewed byte-patterns in one catalog.",
+    tf2Stamp: "Linux x86 / x64 · Live Updates",
+    tf2Description: "Live auto-catalog of signatures and offsets (updated on each game update).",
     entriesLabel: "entries",
     signatureCount: "signatures",
     symbolCount: "ELF symbols",
-    classifiedStamp: "Linux x64 only",
-    classifiedDescription: "Linux x64 ELF symbols checked against the reference binaries.",
+    classifiedStamp: "Archive · Linux x64 (2026-08-21)",
+    classifiedDescription: "Archived snapshot as of 2026-08-21 (maintenance frozen).",
     classifiedOnlyX64: "Classified signatures are available for Linux x64 only.",
     catalogAria: "Signature list",
     catalogTitle: "Signature list",
@@ -401,6 +401,9 @@ function makePlatformBlock(label, signature) {
     const offset = element("span", "offsets", moduleOffset.text);
     offset.title = moduleOffset.title;
     heading.append(offset);
+    offset.dataset.copyValue = signature.offsets.join(", ");
+    offset.setAttribute("role", "button");
+    offset.tabIndex = 0;
   }
   block.append(heading);
 
@@ -554,9 +557,22 @@ function init() {
     const copied = await copyText(button.dataset.copyValue);
     const state = copied ? "copied" : "failed";
     const label = translate(copied ? "copied" : "copyFailed");
+    const isOffset = button.classList.contains("offsets");
     button.dataset.copyState = state;
     button.title = label;
     button.setAttribute("aria-label", label);
+
+    if (isOffset) {
+      const origText = button.textContent;
+      button.textContent = copied ? `✓ ${label}` : label;
+      window.setTimeout(() => {
+        delete button.dataset.copyState;
+        button.textContent = origText;
+        button.title = formatModuleOffset(button.dataset.copyValue.split(", ")).title;
+      }, 1400);
+      return;
+    }
+
     window.setTimeout(() => {
       delete button.dataset.copyState;
       button.title = translate("copy");
