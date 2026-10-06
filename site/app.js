@@ -61,7 +61,10 @@ const translations = {
     changelogButton: "Журнал обновлений",
     changelogTitle: "Журнал обновлений сигнатур и VTable",
     changelogTypeCol: "Тип",
-    changelogDetailsCol: "Изменение",
+    changelogDetailsCol: "Детали",
+    oldOffsetLabel: "Было",
+    newOffsetLabel: "Стало",
+    searchGlobalPlaceholder: "Общий поиск…",
     vtablesButton: "Таблица VTable (Офсеты)",
     vtablesTitle: "Таблица виртуальных оффсетов VTable (L / W)",
     searchVtablePlaceholder: "Поиск по классу (напр. CRestore, CBaseEntity) или методу...",
@@ -163,7 +166,10 @@ const translations = {
     tabGlobalSearch: "Global Search",
     globalBadge: "All",
     globalQueryLabel: "Unified search across signatures, classes, methods, and offsets",
-    searchGlobalPlaceholder: "For example: TakeDamage, CRestore, AddEmptyMesh or 12",
+    searchGlobalPlaceholder: "Global search…",
+    changelogDetailsCol: "Details",
+    oldOffsetLabel: "Was",
+    newOffsetLabel: "Became",
     categoryLabel: "Category",
     globalTypeAll: "All results (signatures & VTable)",
     globalTypeSignatures: "Signatures only",
@@ -845,6 +851,8 @@ function initChangelog() {
         element("th", "", translate("changelogTypeCol")),
         element("th", "", translate("functionNameCol")),
         element("th", "", translate("libraryCol")),
+        element("th", "", translate("oldOffsetLabel")),
+        element("th", "", translate("newOffsetLabel")),
         element("th", "", translate("changelogDetailsCol")),
       );
       thead.append(headRow);
@@ -867,7 +875,7 @@ function initChangelog() {
       if (samples.length === 0) {
         const tr = element("tr");
         const td = element("td", "muted", translate("noUpdatesFound"));
-        td.colSpan = 4;
+        td.colSpan = 6;
         tr.append(td);
         tbody.append(tr);
       } else {
@@ -877,6 +885,10 @@ function initChangelog() {
           const type = item.type || (item.name?.includes("::") ? "vtable" : "symbol");
           if (type === "vtable") {
             tdType.append(element("span", "badge badge-accent", "VTable"));
+          } else if (type === "offset") {
+            tdType.append(element("span", "badge badge-offset", "Offset"));
+          } else if (type === "sizeof") {
+            tdType.append(element("span", "badge badge-sizeof", "Sizeof"));
           } else if (type === "byte-pattern") {
             tdType.append(element("span", "badge badge-warning", "Byte-pattern"));
           } else {
@@ -889,7 +901,7 @@ function initChangelog() {
           nameLink.title = translate("showInCatalog");
           nameLink.addEventListener("click", () => {
             modal.close();
-            if (type === "vtable") {
+            if (type === "vtable" || type === "offset" || type === "sizeof") {
               const tabVt = document.querySelector("#tab-vtables");
               if (tabVt) tabVt.click();
               const q = document.querySelector("#vtable-query");
@@ -912,8 +924,10 @@ function initChangelog() {
           tdName.append(nameLink);
 
           const tdLib = element("td", "", `${item.library || ""} ${item.platform ? `(${item.platform})` : ""}`.trim());
+          const tdOld = element("td", "changelog-val-old", item.oldValue || "—");
+          const tdNew = element("td", "changelog-val-new", item.newValue || item.details || "—");
           const tdDetails = element("td", "changelog-details", item.details || "—");
-          tr.append(tdType, tdName, tdLib, tdDetails);
+          tr.append(tdType, tdName, tdLib, tdOld, tdNew, tdDetails);
           tbody.append(tr);
         });
       }
@@ -982,18 +996,26 @@ function initCatalogTabs(selectedGame, state, makeResultCard) {
 
   if (!tabSignatures || !tabVtables) return;
 
-  if (selectedGame !== "tf2") {
-    tabVtables.hidden = true;
-    if (tabGlobal) tabGlobal.hidden = true;
-  } else {
-    tabVtables.hidden = false;
-    if (tabGlobal) tabGlobal.hidden = false;
+  const catalogGlobalQuery = document.querySelector("#catalog-global-query");
+
+  tabVtables.hidden = false;
+  const vtablesBadge = document.querySelector("#tab-vtables-badge");
+  if (vtablesBadge) {
+    vtablesBadge.textContent = selectedGame === "tf2c" ? "2.2k" : "232k";
+  }
+  const vtableStatMethods = document.querySelector("#vtable-stat-methods");
+  if (vtableStatMethods) {
+    vtableStatMethods.textContent = selectedGame === "tf2c" ? "2 261" : "232 270";
+  }
+  const vtableStatClasses = document.querySelector("#vtable-stat-classes");
+  if (vtableStatClasses) {
+    vtableStatClasses.textContent = selectedGame === "tf2c" ? "42" : "3 391";
   }
 
   let activeTab = "signatures";
   let vtablesData = null;
   let loadingPromise = null;
-  let currentVTableClass = "CRestore";
+  let currentVTableClass = selectedGame === "tf2c" ? "CBaseAnimating" : "CRestore";
 
   // VTable dynamic loading state
   const VTABLE_PAGE_SIZE = 50;
@@ -1027,9 +1049,9 @@ function initCatalogTabs(selectedGame, state, makeResultCard) {
     tabSignatures.setAttribute("aria-selected", activeTab === "signatures");
     tabVtables.classList.toggle("active", activeTab === "vtables");
     tabVtables.setAttribute("aria-selected", activeTab === "vtables");
-    if (tabGlobal) {
-      tabGlobal.classList.toggle("active", activeTab === "global");
-      tabGlobal.setAttribute("aria-selected", activeTab === "global");
+
+    if (activeTab !== "global" && catalogGlobalQuery) {
+      catalogGlobalQuery.value = "";
     }
 
     if (signaturesControls) signaturesControls.hidden = activeTab !== "signatures";
@@ -1045,26 +1067,48 @@ function initCatalogTabs(selectedGame, state, makeResultCard) {
     } else if (activeTab === "global") {
       ensureVTablesLoaded().then(() => {
         runGlobalSearch();
-        globalQueryInput?.focus();
+        if (catalogGlobalQuery && catalogGlobalQuery.value) {
+          catalogGlobalQuery.focus();
+        } else {
+          globalQueryInput?.focus();
+        }
       });
     }
   }
 
   tabSignatures.addEventListener("click", () => switchTab("signatures"));
   tabVtables.addEventListener("click", () => switchTab("vtables"));
-  tabGlobal?.addEventListener("click", () => switchTab("global"));
+
+  if (catalogGlobalQuery) {
+    catalogGlobalQuery.addEventListener("input", () => {
+      const q = catalogGlobalQuery.value.trim();
+      if (globalQueryInput) globalQueryInput.value = q;
+      if (q.length > 0) {
+        if (activeTab !== "global") switchTab("global");
+        else runGlobalSearch();
+      } else {
+        switchTab("signatures");
+      }
+    });
+    catalogGlobalQuery.addEventListener("focus", () => {
+      if (catalogGlobalQuery.value.trim().length > 0 && activeTab !== "global") {
+        switchTab("global");
+      }
+    });
+  }
 
   async function loadVTablesData() {
     if (vtablesData) return vtablesData;
     if (loadingPromise) return loadingPromise;
     loadingPromise = (async () => {
       try {
-        const res = await fetch("./data/tf2-vtables.json");
+        const file = selectedGame === "tf2c" ? "./data/tf2c-vtables.json" : "./data/tf2-vtables.json";
+        const res = await fetch(file);
         if (!res.ok) throw new Error("HTTP " + res.status);
         vtablesData = await res.json();
         return vtablesData;
       } catch (err) {
-        console.warn("Failed to load tf2-vtables.json", err);
+        console.warn("Failed to load vtables data", err);
         return null;
       }
     })();
@@ -1123,30 +1167,101 @@ function initCatalogTabs(selectedGame, state, makeResultCard) {
 
     const chunk = vtableFilteredMethods.slice(vtableRenderedCount, vtableRenderedCount + VTABLE_PAGE_SIZE);
     const fragment = document.createDocumentFragment();
+    const isCrossClass = Boolean((vtableQueryInput?.value || "").trim());
 
-    chunk.forEach(({ lIndex, wIndex, fullName }) => {
+    chunk.forEach((item) => {
       const tr = element("tr");
-      const tdL = element("td", "vtables-col-l", String(lIndex));
-      const tdW = element("td", "vtables-col-w", wIndex !== null ? String(wIndex) : "—");
-      const tdFunc = element("td", "vtables-col-func");
-      const code = element("code", "vtables-func-code", fullName);
-      tdFunc.append(code);
 
-      const tdAction = element("td", "vtables-col-action");
-      const copyBtn = element("button", "btn-sm-action", "GameData");
-      copyBtn.type = "button";
-      copyBtn.title = "Скопировать блок для SourceMod GameData";
-      copyBtn.addEventListener("click", async () => {
-        const shortName = getMethodShortName(fullName);
-        const snippet = `"${shortName}"\n{\n    "windows"    "${wIndex !== null ? wIndex : "0"}"\n    "linux"      "${lIndex}"\n}`;
-        const ok = await copyText(snippet);
-        const orig = copyBtn.textContent;
-        copyBtn.textContent = ok ? "✓ OK" : "ERR";
-        setTimeout(() => { copyBtn.textContent = orig; }, 1200);
-      });
-      tdAction.append(copyBtn);
+      if (item.type === "offset" || item.type === "sizeof") {
+        const lStr = item.linux !== null ? `x86: ${item.linux}${item.linux64 ? ` (x64: ${item.linux64})` : ""}` : "—";
+        const wStr = item.windows !== null ? `x86: ${item.windows}${item.windows64 ? ` (x64: ${item.windows64})` : ""}` : "—";
 
-      tr.append(tdL, tdW, tdFunc, tdAction);
+        const tdL = element("td", "vtables-col-l", lStr);
+        tdL.style.fontSize = "0.72rem";
+        tdL.style.whiteSpace = "nowrap";
+
+        const tdW = element("td", "vtables-col-w", wStr);
+        tdW.style.fontSize = "0.72rem";
+        tdW.style.whiteSpace = "nowrap";
+
+        const tdFunc = element("td", "vtables-col-func");
+        if (item.className) {
+          const classBtn = element("button", "link-button", `${item.className}::`);
+          classBtn.type = "button";
+          classBtn.style.fontWeight = "700";
+          classBtn.style.marginRight = "4px";
+          classBtn.addEventListener("click", () => {
+            currentVTableClass = item.className;
+            if (vtableClassSelect) vtableClassSelect.value = item.className;
+            if (vtableQueryInput) vtableQueryInput.value = "";
+            renderCurrentVTable();
+          });
+          tdFunc.append(classBtn);
+        }
+        const code = element("code", "vtables-func-code", item.memberName || item.fullName);
+        const badge = element("span", `badge ${item.type === "sizeof" ? "badge-sizeof" : "badge-offset"}`, item.type === "sizeof" ? "Sizeof" : "Offset");
+        badge.style.marginLeft = "8px";
+        badge.style.fontSize = "0.68rem";
+        tdFunc.append(code, badge);
+
+        const tdAction = element("td", "vtables-col-action");
+        const copyBtn = element("button", "btn-sm-action", "GameData");
+        copyBtn.type = "button";
+        copyBtn.title = "Скопировать блок для SourceMod GameData";
+        copyBtn.addEventListener("click", async () => {
+          let snippet = `"${item.fullName}"\n{\n`;
+          if (item.windows) snippet += `    "windows"      "${item.windows}"\n`;
+          if (item.linux) snippet += `    "linux"        "${item.linux}"\n`;
+          if (item.windows64) snippet += `    "windows64"    "${item.windows64}"\n`;
+          if (item.linux64) snippet += `    "linux64"      "${item.linux64}"\n`;
+          snippet += `}`;
+          const ok = await copyText(snippet);
+          const orig = copyBtn.textContent;
+          copyBtn.textContent = ok ? "✓ OK" : "ERR";
+          setTimeout(() => { copyBtn.textContent = orig; }, 1200);
+        });
+        tdAction.append(copyBtn);
+
+        tr.append(tdL, tdW, tdFunc, tdAction);
+      } else {
+        const tdL = element("td", "vtables-col-l", String(item.lIndex));
+        const tdW = element("td", "vtables-col-w", item.wIndex !== null ? String(item.wIndex) : "—");
+        const tdFunc = element("td", "vtables-col-func");
+
+        if (isCrossClass && item.className) {
+          const classBtn = element("button", "link-button", `${formatClassName(item.className)}::`);
+          classBtn.type = "button";
+          classBtn.style.fontWeight = "700";
+          classBtn.style.marginRight = "4px";
+          classBtn.addEventListener("click", () => {
+            currentVTableClass = item.className;
+            if (vtableClassSelect) vtableClassSelect.value = item.className;
+            if (vtableQueryInput) vtableQueryInput.value = "";
+            renderCurrentVTable();
+          });
+          tdFunc.append(classBtn);
+        }
+
+        const code = element("code", "vtables-func-code", item.fullName);
+        tdFunc.append(code);
+
+        const tdAction = element("td", "vtables-col-action");
+        const copyBtn = element("button", "btn-sm-action", "GameData");
+        copyBtn.type = "button";
+        copyBtn.title = "Скопировать блок для SourceMod GameData";
+        copyBtn.addEventListener("click", async () => {
+          const shortName = getMethodShortName(item.fullName);
+          const snippet = `"${shortName}"\n{\n    "windows"    "${item.wIndex !== null ? item.wIndex : "0"}"\n    "linux"      "${item.lIndex}"\n}`;
+          const ok = await copyText(snippet);
+          const orig = copyBtn.textContent;
+          copyBtn.textContent = ok ? "✓ OK" : "ERR";
+          setTimeout(() => { copyBtn.textContent = orig; }, 1200);
+        });
+        tdAction.append(copyBtn);
+
+        tr.append(tdL, tdW, tdFunc, tdAction);
+      }
+
       fragment.append(tr);
     });
 
@@ -1176,29 +1291,98 @@ function initCatalogTabs(selectedGame, state, makeResultCard) {
 
   function renderCurrentVTable() {
     if (!vtablesContainer || !vtablesData?.classes) return;
-    const classInfo = vtablesData.classes[currentVTableClass];
-    if (!classInfo) {
-      vtablesContainer.replaceChildren(element("div", "state", translate("vtableClassNotFound", { name: currentVTableClass })));
-      if (vtableSentinel) vtableSentinel.hidden = true;
-      return;
-    }
 
     const filterText = (vtableQueryInput?.value || "").trim().toLowerCase();
-
-    if (vtableViewTitle) {
-      vtableViewTitle.textContent = `${formatClassName(currentVTableClass)} (${classInfo.library})`;
-    }
+    const currentLib = vtableSourceSelect?.value || "all";
 
     vtableFilteredMethods = [];
-    classInfo.methods.forEach(([wIndex, fullName], lIndex) => {
-      if (filterText) {
-        const matchesName = fullName.toLowerCase().includes(filterText);
-        const matchesL = String(lIndex) === filterText;
-        const matchesW = wIndex !== null && String(wIndex) === filterText;
-        if (!matchesName && !matchesL && !matchesW) return;
+
+    if (!filterText) {
+      const classInfo = vtablesData.classes[currentVTableClass];
+      if (!classInfo) {
+        vtablesContainer.replaceChildren(element("div", "state", translate("vtableClassNotFound", { name: currentVTableClass })));
+        if (vtableSentinel) vtableSentinel.hidden = true;
+        return;
       }
-      vtableFilteredMethods.push({ lIndex, wIndex, fullName });
-    });
+
+      if (vtableViewTitle) {
+        vtableViewTitle.textContent = `${formatClassName(currentVTableClass)} (${classInfo.library})`;
+      }
+
+      if (vtablesData.memberOffsets) {
+        Object.values(vtablesData.memberOffsets).forEach((item) => {
+          if (item.class === currentVTableClass) {
+            vtableFilteredMethods.push({
+              type: item.type || "offset",
+              className: item.class,
+              memberName: item.member,
+              fullName: item.name,
+              linux: item.linux,
+              linux64: item.linux64,
+              windows: item.windows,
+              windows64: item.windows64,
+            });
+          }
+        });
+      }
+
+      classInfo.methods.forEach(([wIndex, fullName], lIndex) => {
+        vtableFilteredMethods.push({
+          type: "vtable",
+          className: currentVTableClass,
+          lIndex,
+          wIndex,
+          fullName,
+        });
+      });
+    } else {
+      if (vtableViewTitle) {
+        vtableViewTitle.textContent = `Результаты поиска: "${vtableQueryInput.value.trim()}"`;
+      }
+
+      if (vtablesData.memberOffsets) {
+        for (const [name, item] of Object.entries(vtablesData.memberOffsets)) {
+          const nameMatch = name.toLowerCase().includes(filterText);
+          const classMatch = item.class?.toLowerCase().includes(filterText);
+          const memberMatch = item.member?.toLowerCase().includes(filterText);
+          const lMatch = item.linux === filterText || item.linux64 === filterText;
+          const wMatch = item.windows === filterText || item.windows64 === filterText;
+          if (nameMatch || classMatch || memberMatch || lMatch || wMatch) {
+            vtableFilteredMethods.push({
+              type: item.type || "offset",
+              className: item.class,
+              memberName: item.member,
+              fullName: item.name,
+              linux: item.linux,
+              linux64: item.linux64,
+              windows: item.windows,
+              windows64: item.windows64,
+            });
+          }
+        }
+      }
+
+      for (const [clsName, info] of Object.entries(vtablesData.classes)) {
+        if (currentLib !== "all" && info.library !== currentLib) continue;
+        const classMatches = clsName.toLowerCase().includes(filterText);
+
+        info.methods.forEach(([wIndex, fullName], lIndex) => {
+          const methodMatches = fullName.toLowerCase().includes(filterText);
+          const lMatches = String(lIndex) === filterText;
+          const wMatches = wIndex !== null && String(wIndex) === filterText;
+
+          if (classMatches || methodMatches || lMatches || wMatches) {
+            vtableFilteredMethods.push({
+              type: "vtable",
+              className: clsName,
+              lIndex,
+              wIndex,
+              fullName,
+            });
+          }
+        });
+      }
+    }
 
     vtableRenderedCount = 0;
 
@@ -1299,6 +1483,62 @@ function initCatalogTabs(selectedGame, state, makeResultCard) {
     return card;
   }
 
+  function makeOffsetResultCard(item) {
+    const card = element("article", "result-card result-card-vtable");
+    const header = element("header", "result-header");
+
+    const badges = element("div", "result-badges");
+    badges.append(
+      element("span", `badge ${item.type === "sizeof" ? "badge-sizeof" : "badge-offset"}`, item.type === "sizeof" ? "Sizeof" : "Offset"),
+      element("span", "badge badge-library", item.library || "server"),
+    );
+
+    if (item.className) {
+      const nameBtn = element("button", "link-button", formatClassName(item.className));
+      nameBtn.type = "button";
+      nameBtn.title = translate("openInVTableTab");
+      nameBtn.style.fontWeight = "750";
+      nameBtn.addEventListener("click", () => {
+        currentVTableClass = item.className;
+        if (vtableClassSelect) vtableClassSelect.value = item.className;
+        if (vtableQueryInput) vtableQueryInput.value = item.memberName || item.fullName;
+        switchTab("vtables");
+        renderCurrentVTable();
+      });
+      header.append(badges, nameBtn);
+    } else {
+      header.append(badges);
+    }
+
+    const codeWrap = element("div", "code-row");
+    const code = element("code", "vtable-method-name", item.fullName);
+    codeWrap.append(code);
+
+    const footer = element("div", "vtable-meta-pills");
+    const pillL = element("span", "vtable-pill vtable-pill-l", `Linux: ${item.linux || "—"}${item.linux64 ? ` (x64: ${item.linux64})` : ""}`);
+    const pillW = element("span", "vtable-pill vtable-pill-w", `Win: ${item.windows || "—"}${item.windows64 ? ` (x64: ${item.windows64})` : ""}`);
+
+    const copyBtn = element("button", "btn-sm-action", "GameData");
+    copyBtn.type = "button";
+    copyBtn.title = "Скопировать блок для SourceMod GameData";
+    copyBtn.addEventListener("click", async () => {
+      let snippet = `"${item.fullName}"\n{\n`;
+      if (item.windows) snippet += `    "windows"      "${item.windows}"\n`;
+      if (item.linux) snippet += `    "linux"        "${item.linux}"\n`;
+      if (item.windows64) snippet += `    "windows64"    "${item.windows64}"\n`;
+      if (item.linux64) snippet += `    "linux64"      "${item.linux64}"\n`;
+      snippet += `}`;
+      const ok = await copyText(snippet);
+      const orig = copyBtn.textContent;
+      copyBtn.textContent = ok ? "✓ OK" : "ERR";
+      setTimeout(() => { copyBtn.textContent = orig; }, 1200);
+    });
+
+    footer.append(pillL, pillW, copyBtn);
+    card.append(header, codeWrap, footer);
+    return card;
+  }
+
   function renderMoreGlobalItems() {
     if (!globalResults || globalRenderedCount >= globalAllMatches.length) {
       if (globalSentinel) globalSentinel.hidden = true;
@@ -1315,6 +1555,8 @@ function initCatalogTabs(selectedGame, state, makeResultCard) {
         }
       } else if (item.kind === "vtable") {
         fragment.append(makeVTableResultCard(item));
+      } else if (item.kind === "offset") {
+        fragment.append(makeOffsetResultCard(item));
       }
     });
 
@@ -1346,7 +1588,7 @@ function initCatalogTabs(selectedGame, state, makeResultCard) {
 
   function runGlobalSearch() {
     if (!globalResults) return;
-    const q = (globalQueryInput?.value || "").trim().toLowerCase();
+    const q = (catalogGlobalQuery?.value || globalQueryInput?.value || "").trim().toLowerCase();
     const typeFilter = globalTypeSelect?.value || "all";
     const sourceFilter = globalSourceSelect?.value || "all";
 
@@ -1378,6 +1620,31 @@ function initCatalogTabs(selectedGame, state, makeResultCard) {
           globalMatchedSigs.push({ kind: "signature", data: entry });
         }
       });
+    }
+
+    if ((typeFilter === "all" || typeFilter === "vtables") && vtablesData?.memberOffsets) {
+      for (const [name, item] of Object.entries(vtablesData.memberOffsets)) {
+        const nameMatch = name.toLowerCase().includes(q);
+        const classMatch = item.class?.toLowerCase().includes(q);
+        const memberMatch = item.member?.toLowerCase().includes(q);
+        const lMatch = item.linux === q || item.linux64 === q;
+        const wMatch = item.windows === q || item.windows64 === q;
+        if (nameMatch || classMatch || memberMatch || lMatch || wMatch) {
+          if (item.class) globalMatchedClasses.add(item.class);
+          globalMatchedVtables.push({
+            kind: "offset",
+            className: item.class,
+            library: "server",
+            fullName: item.name,
+            memberName: item.member,
+            linux: item.linux,
+            linux64: item.linux64,
+            windows: item.windows,
+            windows64: item.windows64,
+            type: item.type || "offset",
+          });
+        }
+      }
     }
 
     if ((typeFilter === "all" || typeFilter === "vtables") && vtablesData?.classes) {
@@ -1434,19 +1701,12 @@ function initCatalogTabs(selectedGame, state, makeResultCard) {
     renderCurrentVTable();
   });
 
+  let vtableDebounceTimer = null;
   vtableQueryInput?.addEventListener("input", () => {
-    const q = (vtableQueryInput.value || "").trim().toLowerCase();
-    if (!vtablesData?.classes) return;
-
-    const directClass = Object.keys(vtablesData.classes).find((c) => {
-      const cLow = c.toLowerCase();
-      return cLow === q || cLow.replace("(anonymous namespace)::", "") === q;
-    });
-    if (directClass && directClass !== currentVTableClass) {
-      currentVTableClass = directClass;
-      vtableClassSelect.value = currentVTableClass;
-    }
-    renderCurrentVTable();
+    clearTimeout(vtableDebounceTimer);
+    vtableDebounceTimer = setTimeout(() => {
+      renderCurrentVTable();
+    }, 120);
   });
 
   globalQueryInput?.addEventListener("input", runGlobalSearch);
@@ -1454,10 +1714,12 @@ function initCatalogTabs(selectedGame, state, makeResultCard) {
   globalSourceSelect?.addEventListener("change", runGlobalSearch);
   globalResetBtn?.addEventListener("click", () => {
     if (globalQueryInput) globalQueryInput.value = "";
+    if (catalogGlobalQuery) catalogGlobalQuery.value = "";
     if (globalTypeSelect) globalTypeSelect.value = "all";
     if (globalSourceSelect) globalSourceSelect.value = "all";
     runGlobalSearch();
-    globalQueryInput?.focus();
+    if (catalogGlobalQuery) catalogGlobalQuery.focus();
+    else globalQueryInput?.focus();
   });
 }
 

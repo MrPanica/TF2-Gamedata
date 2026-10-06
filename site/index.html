@@ -88,6 +88,9 @@
 
       <section id="catalog" class="catalog-section" aria-labelledby="catalog-title" data-i18n-aria="catalogAria">
         <h2 id="catalog-title" class="sr-only" data-i18n="catalogTitle">Список сигнатур</h2>
+        <div class="catalog-meta-top">
+          <div id="data-version" class="muted"></div>
+        </div>
         <div class="catalog-heading">
           <div class="catalog-heading-left">
             <div class="catalog-tabs" role="tablist" aria-label="Разделы каталога">
@@ -101,11 +104,10 @@
                 <span data-i18n="tabVtables">VTable</span>
                 <span id="tab-vtables-badge" class="tab-badge">232k</span>
               </button>
-              <button id="tab-global" type="button" class="catalog-tab" role="tab" aria-selected="false" data-tab="global">
-                <span>🔍</span>
-                <span data-i18n="tabGlobalSearch">Общий поиск</span>
-                <span id="tab-global-badge" class="tab-badge" data-i18n="globalBadge">Везде</span>
-              </button>
+            </div>
+            <div class="catalog-global-search">
+              <span class="catalog-global-icon" aria-hidden="true">🔍</span>
+              <input id="catalog-global-query" type="search" autocomplete="off" placeholder="Общий поиск…" data-i18n-placeholder="searchGlobalPlaceholder" />
             </div>
             <p id="game-note" class="game-note" data-i18n="classifiedOnlyX64" hidden>Для Classified доступны только сигнатуры Linux x64.</p>
           </div>
@@ -113,7 +115,6 @@
             <button id="btn-changelog" type="button" class="button button-changelog" hidden>
               <span>🕒</span> <span data-i18n="changelogButton">Журнал обновлений</span>
             </button>
-            <div id="data-version" class="muted"></div>
           </div>
         </div>
 

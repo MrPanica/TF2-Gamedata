@@ -1,11 +1,11 @@
 {
   "schemaVersion": 2,
   "latestBuild": "live-node1-test",
-  "updatedAt": "2026-10-06T15:35:00Z",
+  "updatedAt": "2026-10-06T19:40:00Z",
   "updates": [
     {
       "buildId": "live-node1-test",
-      "date": "2026-10-06T15:35:00Z",
+      "date": "2026-10-06T19:40:00Z",
       "title": "Синхронизация каталога сигнатур и VTable (Нода 1)",
       "description": "Синхронизация 61 569 сигнатур (ELF и байт-паттерны) и 232 270 оффсетов VTable (3 391 класс) из бинарников dedicated сервера Valve.",
       "stats": {
@@ -15,41 +15,60 @@
         "engineSignatures": 7999,
         "serverSignatures": 53570
       },
-      "sampleCount": 7,
+      "sampleCount": 8,
       "sampleChanges": [
         {
           "type": "vtable",
           "name": "CRestore::GetReadPos() const",
           "library": "server",
           "platform": "vtable",
-          "details": "L: 0, W: 0"
+          "oldValue": "L: 0, W: 0",
+          "newValue": "L: 0, W: 0",
+          "details": "Смещение подтверждено"
         },
         {
           "type": "vtable",
           "name": "CRestore::StartBlock(SaveRestoreRecordHeader_t*)",
           "library": "server",
           "platform": "vtable",
-          "details": "L: 5, W: 7 (перегрузка MSVC)"
+          "oldValue": "L: 5, W: 6",
+          "newValue": "L: 5, W: 7",
+          "details": "Перегрузка виртуального метода MSVC"
         },
         {
           "type": "vtable",
           "name": "CRestore::ReadShort()",
           "library": "server",
           "platform": "vtable",
-          "details": "L: 12, W: 13 (перегрузка MSVC)"
+          "oldValue": "L: 12, W: 12",
+          "newValue": "L: 12, W: 13",
+          "details": "Перегрузка виртуального метода MSVC"
         },
         {
           "type": "vtable",
           "name": "CBaseEntity::TakeDamage(CTakeDamageInfo const&)",
           "library": "server",
           "platform": "vtable",
-          "details": "L: 64, W: 63"
+          "oldValue": "L: 64, W: 63",
+          "newValue": "L: 64, W: 63",
+          "details": "Виртуальный слот подтверждён"
+        },
+        {
+          "type": "offset",
+          "name": "CEconItemDefinition::m_u8MinLevel",
+          "library": "server",
+          "platform": "all",
+          "oldValue": "x86: 17",
+          "newValue": "x86: 17, x64: 33",
+          "details": "Смещение поля структуры (+16 байт на x64 из-за 64-битных указателей)"
         },
         {
           "type": "byte-pattern",
           "name": "CTFPlayer::Event_Killed(CTakeDamageInfo const&)",
           "library": "server",
           "platform": "linux",
+          "oldValue": "55 89 E5 57 56 53 81 EC ...",
+          "newValue": "55 89 E5 57 56 53 81 EC A4 01 00 00",
           "details": "Подтверждён уникальный байт-паттерн Linux x86"
         },
         {
@@ -57,14 +76,18 @@
           "name": "AddEmptyMesh",
           "library": "engine",
           "platform": "linux/linux64",
-          "details": "ELF символ @_ZN10CStaticPro12AddEmptyMeshEv"
+          "oldValue": "—",
+          "newValue": "@_ZN10CStaticPro12AddEmptyMeshEv",
+          "details": "ELF символ экспорта engine_srv.so"
         },
         {
           "type": "symbol",
           "name": "FireOutput",
           "library": "server",
           "platform": "linux64",
-          "details": "ELF символ @_ZN17CBaseEntityOutput10FireOutputE9variant_tP11CBaseEntityS2_f"
+          "oldValue": "—",
+          "newValue": "@_ZN17CBaseEntityOutput10FireOutputE9variant_tP11CBaseEntityS2_f",
+          "details": "ELF символ экспорта server_srv.so"
         }
       ]
     }

@@ -252,6 +252,15 @@ export function buildCatalogManifest(catalog) {
     } catch {}
   }
 
+  const tf2cVtablesPath = path.join(ROOT, "artifacts", "tf2c-vtables.json");
+  let tf2cVtablesCount = 2261;
+  if (fs.existsSync(tf2cVtablesPath)) {
+    try {
+      const data = JSON.parse(fs.readFileSync(tf2cVtablesPath, "utf8"));
+      tf2cVtablesCount = data.totalMethods || 2261;
+    } catch {}
+  }
+
   return {
     schemaVersion: catalog.schemaVersion,
     generatedAt: catalog.generatedAt,
@@ -259,6 +268,7 @@ export function buildCatalogManifest(catalog) {
       Object.entries(catalog.games).map(([game, index]) => {
         const stats = { ...index.stats };
         if (game === "tf2") stats.vtables = vtablesCount;
+        if (game === "tf2c") stats.vtables = tf2cVtablesCount;
         return [game, {
           dataFile: `${game}.json`,
           stats,
@@ -294,6 +304,11 @@ export function writeBuild(root = ROOT) {
   const vtablesPath = path.join(root, "artifacts", "tf2-vtables.json");
   if (fs.existsSync(vtablesPath)) {
     fs.copyFileSync(vtablesPath, path.join(dist, "data", "tf2-vtables.json"));
+  }
+
+  const tf2cVtablesPath = path.join(root, "artifacts", "tf2c-vtables.json");
+  if (fs.existsSync(tf2cVtablesPath)) {
+    fs.copyFileSync(tf2cVtablesPath, path.join(dist, "data", "tf2c-vtables.json"));
   }
 
   return { catalog, dist };
