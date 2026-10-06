@@ -369,7 +369,10 @@
           <div class="gamedata-pane">
             <div class="gamedata-pane-header">
               <span data-i18n="gamedataInputHeader">Исходный GameData</span>
-              <button id="gamedata-btn-example" type="button" class="btn-xs" data-i18n="gamedataExampleBtn">Вставить пример</button>
+              <div class="gamedata-pane-actions">
+                <button id="gamedata-btn-example" type="button" class="btn-xs" data-i18n="gamedataExampleBtn">Вставить пример</button>
+                <button id="gamedata-btn-clear" type="button" class="btn-xs" data-i18n="reset">Очистить</button>
+              </div>
             </div>
             <textarea id="gamedata-input" class="gamedata-textarea" placeholder="Вставьте сюда содержимое вашего .txt файла GameData (например: TF2_UTILs.txt или свой плагин)..." spellcheck="false"></textarea>
           </div>
@@ -383,6 +386,13 @@
             </div>
             <textarea id="gamedata-output" class="gamedata-textarea" placeholder="Здесь появится обновлённый и выровненный GameData..." readonly spellcheck="false"></textarea>
           </div>
+        </div>
+        <div id="gamedata-changes-container" class="gamedata-changes-container" hidden>
+          <div class="gamedata-changes-header">
+            <span data-i18n="gamedataChangesTitle">Журнал изменений GameData</span>
+            <span class="badge" id="gamedata-changes-badge">0</span>
+          </div>
+          <div id="gamedata-changes-list" class="gamedata-changes-list"></div>
         </div>
         <div class="gamedata-footer">
           <div id="gamedata-stats" class="gamedata-stats-summary muted" data-i18n="gamedataReadyPrompt">Вставьте данные и нажмите «Обработать GameData»</div>
