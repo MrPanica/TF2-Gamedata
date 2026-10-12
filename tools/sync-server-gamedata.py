@@ -436,6 +436,7 @@ def generate_discord_report(changes: list[dict], total_files: int) -> dict:
             "title": "TF2 GameData актуальна",
             "description": "Изменений в VTable и сигнатурах не обнаружено, GameData на серверах актуальна.",
             "color": 3066993,
+            "sample_changes": [],
         }
 
     offset_changes = [c for c in changes if c["type"] == "offset"]
@@ -450,6 +451,27 @@ def generate_discord_report(changes: list[dict], total_files: int) -> dict:
             dedup[k] = []
         if fname not in dedup[k]:
             dedup[k].append(fname)
+
+    sample_changes: list[dict] = []
+    for (entry, prop, old, new, kind), fnames in dedup.items():
+        is_vtable = "(" in entry or kind == "vtable" or entry == "CalcIsAttackCriticalHelper"
+        entry_type = "vtable" if is_vtable else ("signature" if kind == "signature" else "offset")
+        if entry_type == "vtable":
+            details = f"Виртуальный слот VTable ({prop})"
+        elif entry_type == "signature":
+            details = f"Обновлена сигнатура ({prop})"
+        else:
+            details = f"Смещение поля структуры ({prop})"
+
+        sample_changes.append({
+            "type": entry_type,
+            "name": entry,
+            "library": "server",
+            "platform": prop,
+            "oldValue": str(old),
+            "newValue": str(new),
+            "details": details,
+        })
 
     desc_lines = [
         f"⚡ **GameData на серверах автоматически обновлена перед стартом!**",
@@ -477,6 +499,7 @@ def generate_discord_report(changes: list[dict], total_files: int) -> dict:
         "title": "🛡️ TF2 GameData автопатчер применил обновления",
         "description": desc_text,
         "color": 3066993,  # Green / Success
+        "sample_changes": sample_changes,
     }
 
 

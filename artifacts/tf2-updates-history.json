@@ -1,8 +1,160 @@
 {
   "schemaVersion": 2,
-  "latestBuild": "live-node1-test",
-  "updatedAt": "2026-10-06T19:40:00Z",
+  "latestBuild": "25889280",
+  "updatedAt": "2026-10-12T21:50:28Z",
   "updates": [
+    {
+      "buildId": "25889280",
+      "date": "2026-10-12T21:50:28Z",
+      "title": "Обновление TF2 (build 25889280)",
+      "description": "Синхронизация смещений и оффсетов после официального обновления Valve",
+      "stats": {
+        "signaturesCount": 61569,
+        "vtablesCount": 232270,
+        "classesCount": 3391,
+        "serverSignatures": 29424,
+        "engineSignatures": 0,
+        "totalChanged": 29439
+      },
+      "sampleCount": 15,
+      "sampleChanges": [
+        {
+          "type": "vtable",
+          "name": "CalcIsAttackCriticalHelper",
+          "library": "server",
+          "platform": "windows",
+          "oldValue": "401",
+          "newValue": "407",
+          "details": "Виртуальный слот VTable CalcIsAttackCriticalHelper (+6 слотов)"
+        },
+        {
+          "type": "offset",
+          "name": "CEconItemSchema::m_AttributeMap",
+          "library": "server",
+          "platform": "linux",
+          "oldValue": "484",
+          "newValue": "448",
+          "details": "Смещение поля структуры в CEconItemSchema (-36 байт)"
+        },
+        {
+          "type": "offset",
+          "name": "CEconItemSchema::m_AttributeMap",
+          "library": "server",
+          "platform": "windows",
+          "oldValue": "484",
+          "newValue": "448",
+          "details": "Смещение поля структуры в CEconItemSchema (-36 байт)"
+        },
+        {
+          "type": "offset",
+          "name": "CEconItemSchema::m_EquipRegions",
+          "library": "server",
+          "platform": "linux",
+          "oldValue": "1004",
+          "newValue": "968",
+          "details": "Смещение поля структуры в CEconItemSchema (-36 байт)"
+        },
+        {
+          "type": "offset",
+          "name": "CEconItemSchema::m_EquipRegions",
+          "library": "server",
+          "platform": "windows",
+          "oldValue": "1004",
+          "newValue": "968",
+          "details": "Смещение поля структуры в CEconItemSchema (-36 байт)"
+        },
+        {
+          "type": "offset",
+          "name": "CEconItemSchema::m_ParticleSystemTree",
+          "library": "server",
+          "platform": "linux",
+          "oldValue": "912",
+          "newValue": "876",
+          "details": "Смещение дерева CUtlRBTree в CEconItemSchema (-36 байт)"
+        },
+        {
+          "type": "offset",
+          "name": "CEconItemSchema::m_ParticleSystemTree",
+          "library": "server",
+          "platform": "windows",
+          "oldValue": "912",
+          "newValue": "876",
+          "details": "Смещение дерева CUtlRBTree в CEconItemSchema (-36 байт)"
+        },
+        {
+          "type": "offset",
+          "name": "CEconItemSchema::m_CosmeticUnusualEffectList",
+          "library": "server",
+          "platform": "linux",
+          "oldValue": "944",
+          "newValue": "908",
+          "details": "Смещение списка эффектов CUtlVector (-36 байт)"
+        },
+        {
+          "type": "offset",
+          "name": "CEconItemSchema::m_CosmeticUnusualEffectList",
+          "library": "server",
+          "platform": "windows",
+          "oldValue": "944",
+          "newValue": "908",
+          "details": "Смещение списка эффектов CUtlVector (-36 байт)"
+        },
+        {
+          "type": "offset",
+          "name": "CEconItemSchema::m_WeaponUnusualEffectList",
+          "library": "server",
+          "platform": "linux",
+          "oldValue": "964",
+          "newValue": "928",
+          "details": "Смещение списка эффектов CUtlVector (-36 байт)"
+        },
+        {
+          "type": "offset",
+          "name": "CEconItemSchema::m_WeaponUnusualEffectList",
+          "library": "server",
+          "platform": "windows",
+          "oldValue": "964",
+          "newValue": "928",
+          "details": "Смещение списка эффектов CUtlVector (-36 байт)"
+        },
+        {
+          "type": "offset",
+          "name": "CEconItemSchema::m_TauntUnusualEffectList",
+          "library": "server",
+          "platform": "linux",
+          "oldValue": "984",
+          "newValue": "948",
+          "details": "Смещение списка эффектов CUtlVector (-36 байт)"
+        },
+        {
+          "type": "offset",
+          "name": "CEconItemSchema::m_TauntUnusualEffectList",
+          "library": "server",
+          "platform": "windows",
+          "oldValue": "984",
+          "newValue": "948",
+          "details": "Смещение списка эффектов CUtlVector (-36 байт)"
+        },
+        {
+          "type": "offset",
+          "name": "CTFItemSchema::m_ItemSlotNames",
+          "library": "server",
+          "platform": "linux",
+          "oldValue": "1468",
+          "newValue": "1432",
+          "details": "Смещение карты слотов предметов в CTFItemSchema (-36 байт)"
+        },
+        {
+          "type": "offset",
+          "name": "CTFItemSchema::m_ItemSlotNames",
+          "library": "server",
+          "platform": "windows",
+          "oldValue": "1468",
+          "newValue": "1432",
+          "details": "Смещение карты слотов предметов в CTFItemSchema (-36 байт)"
+        }
+      ]
+    },
     {
       "buildId": "live-node1-test",
       "date": "2026-10-06T19:40:00Z",

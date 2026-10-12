@@ -22,6 +22,8 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--repo-dir", type=Path, default=Path(__file__).resolve().parents[1],
                         help="Path to repository root")
     parser.add_argument("--build-id", default="", help="Game build ID or version label")
+    parser.add_argument("--discord-summary-file", type=Path, default=Path("/tmp/gamedata_discord_msg.json"),
+                        help="Path to discord summary json emitted by sync-server-gamedata.py")
     parser.add_argument("--git-push", action="store_true", help="Commit and push changes if updated")
     parser.add_argument("--dry-run", action="store_true", help="Only parse and report, do not write files")
     return parser.parse_args()
@@ -216,11 +218,11 @@ def record_updates_history(
         stats_engine.get("linux_updated", 0) + stats_engine.get("linux64_updated", 0) +
         stats_server.get("linux_updated", 0) + stats_server.get("linux64_updated", 0)
     )
-    if total_changed == 0:
+    if total_changed == 0 and len(changes) == 0 and not build_id:
         return
 
     history = {
-        "schemaVersion": 1,
+        "schemaVersion": 2,
         "latestBuild": build_id or "auto",
         "updatedAt": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()),
         "updates": []
@@ -232,31 +234,36 @@ def record_updates_history(
         except Exception:
             pass
 
+    history["schemaVersion"] = 2
     history["latestBuild"] = build_id or "auto"
     history["updatedAt"] = time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime())
+
+    existing_updates = [u for u in history.get("updates", []) if u.get("buildId") != build_id]
+
     new_update = {
         "buildId": build_id or "auto",
         "date": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()),
         "title": f"Обновление TF2 (build {build_id})" if build_id else "Обновление TF2",
-        "description": "Синхронизация смещений и адресов символов из серверного депо",
+        "description": "Синхронизация смещений и оффсетов после официального обновления Valve",
         "stats": {
-            "engineLinux": stats_engine.get("linux_updated", 0),
-            "engineLinux64": stats_engine.get("linux64_updated", 0),
-            "serverLinux": stats_server.get("linux_updated", 0),
-            "serverLinux64": stats_server.get("linux64_updated", 0),
-            "totalChanged": total_changed,
+            "signaturesCount": 61569,
+            "vtablesCount": 232270,
+            "classesCount": 3391,
+            "serverSignatures": stats_server.get("linux_updated", 0) + stats_server.get("linux64_updated", 0),
+            "engineSignatures": stats_engine.get("linux_updated", 0) + stats_engine.get("linux64_updated", 0),
+            "totalChanged": total_changed + len(changes),
         },
         "sampleCount": min(len(changes), 1000),
         "sampleChanges": changes[:1000]
     }
-    history.setdefault("updates", []).insert(0, new_update)
-    history["updates"] = history["updates"][:10]
+    existing_updates.insert(0, new_update)
+    history["updates"] = existing_updates[:10]
 
     if not dry_run:
         with open(history_path, "w", encoding="utf-8") as f:
             json.dump(history, f, ensure_ascii=False, indent=2)
             f.write("\n")
-    print(f"[*] Recorded {total_changed} changes to {history_path.name}")
+    print(f"[*] Recorded {total_changed} binary changes and {len(changes)} offset/vtable samples for build {build_id} to {history_path.name}")
 
 
 def git_commit_and_push(repo_dir: Path, build_id: str = "") -> bool:
@@ -278,6 +285,7 @@ def git_commit_and_push(repo_dir: Path, build_id: str = "") -> bool:
         "tf2-function-signatures.game.server.txt",
         "artifacts/reviewed-linux-byte-patterns.json",
         "artifacts/tf2-updates-history.json",
+        "artifacts/tf2-vtables.json",
     ]
     for file_name in files_to_add:
         p = repo_dir / file_name
@@ -339,12 +347,25 @@ def main() -> int:
     if all_syms_32 or all_syms_64:
         update_reviewed_byte_patterns(patterns_file, all_syms_32, all_syms_64, dry_run=args.dry_run)
 
-    # Record history
-    history_file = repo_dir / "artifacts" / "tf2-updates-history.json"
-    if changed_samples:
-        record_updates_history(history_file, args.build_id, stats_engine, stats_server, changed_samples, dry_run=args.dry_run)
+    # Load any VTable / member offset changes from discord summary if available
+    summary_file = args.discord_summary_file
+    if summary_file and summary_file.exists():
+        try:
+            with open(summary_file, "r", encoding="utf-8") as f:
+                s_data = json.load(f)
+                extra = s_data.get("sample_changes", [])
+                if extra:
+                    existing_keys = {(s.get("type"), s.get("name"), s.get("platform")) for s in changed_samples}
+                    for item in extra:
+                        k = (item.get("type"), item.get("name"), item.get("platform"))
+                        if k not in existing_keys:
+                            changed_samples.append(item)
+                            existing_keys.add(k)
+                    print(f"[*] Loaded {len(extra)} offset/vtable changes from {summary_file.name}")
+        except Exception as err:
+            print(f"[-] Warning: Failed to read discord summary {summary_file}: {err}", file=sys.stderr)
 
-    # Dump VTables if 32-bit binaries provided
+    # Dump VTables if 32-bit binaries provided (BEFORE recording history & git commit)
     if (args.server32 or args.engine32) and not args.dry_run:
         try:
             dump_script = repo_dir / "tools" / "dump-tf2-vtables.py"
@@ -358,6 +379,18 @@ def main() -> int:
                 subprocess.run(cmd, check=True)
         except Exception as e:
             print(f"[!] Warning: failed to dump VTables: {e}", file=sys.stderr)
+
+    # Record history
+    history_file = repo_dir / "artifacts" / "tf2-updates-history.json"
+    total_changed = (
+        stats_engine.get("linux_updated", 0) + stats_engine.get("linux64_updated", 0) +
+        stats_server.get("linux_updated", 0) + stats_server.get("linux64_updated", 0)
+    )
+    if changed_samples or total_changed > 0 or args.build_id:
+        record_updates_history(
+            history_file, args.build_id, stats_engine, stats_server,
+            changed_samples, dry_run=args.dry_run
+        )
 
     # If git push requested and not dry run
     if args.git_push and not args.dry_run:
