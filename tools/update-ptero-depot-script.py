@@ -1,10 +1,55 @@
 #!/usr/bin/env python3
-"""Helper script to safely insert pre-restart GameData sync into ptero_tf2_depot_update.sh."""
+"""Helper script to safely insert pre-restart GameData sync and fix JSON formatting in ptero_tf2_depot_update.sh."""
 
+import re
 import sys
 from pathlib import Path
 
 SCRIPT_PATH = Path("/usr/local/bin/ptero_tf2_depot_update.sh")
+
+OLD_SEND_EMBED = """send_embed() {
+  local title="$1" desc="$2" color="${3:-16776960}"
+  local payload
+  payload=$(cat <<EOF
+{"embeds":[{"title":"$title","description":"$desc","color":$color,"timestamp":"$(date -Iseconds)"}]}
+EOF
+)
+  curl -s -H "Content-Type: application/json" -X POST -d "$payload" "$DISCORD_WEBHOOK_URL" >/dev/null
+}
+
+send_embed_to_second() {
+  local title="$1" desc="$2" color="${3:-16776960}"
+  local payload
+  payload=$(cat <<EOF
+{"embeds":[{"title":"$title","description":"$desc","color":$color,"timestamp":"$(date -Iseconds)"}]}
+EOF
+)
+  curl -s -H "Content-Type: application/json" -X POST -d "$payload" "$SECOND_WEBHOOK_URL" >/dev/null
+}"""
+
+NEW_SEND_EMBED = """send_embed() {
+  local title="$1" desc="$2" color="${3:-16776960}"
+  local payload
+  payload=$(jq -n \\
+    --arg title "$title" \\
+    --arg desc "$desc" \\
+    --argjson color "$color" \\
+    --arg ts "$(date -Iseconds)" \\
+    '{"embeds":[{"title":$title,"description":$desc,"color":$color,"timestamp":$ts}]}')
+  curl -s -H "Content-Type: application/json" -X POST -d "$payload" "$DISCORD_WEBHOOK_URL" >/dev/null
+}
+
+send_embed_to_second() {
+  local title="$1" desc="$2" color="${3:-16776960}"
+  local payload
+  payload=$(jq -n \\
+    --arg title "$title" \\
+    --arg desc "$desc" \\
+    --argjson color "$color" \\
+    --arg ts "$(date -Iseconds)" \\
+    '{"embeds":[{"title":$title,"description":$desc,"color":$color,"timestamp":$ts}]}')
+  curl -s -H "Content-Type: application/json" -X POST -d "$payload" "$SECOND_WEBHOOK_URL" >/dev/null
+}"""
 
 INSERTION = """# -------------------------------------------------------------------------
 # Предстартовое сканирование и автопатчинг GameData серверов
@@ -45,17 +90,30 @@ def main() -> None:
         sys.exit(1)
 
     content = SCRIPT_PATH.read_text(encoding="utf-8")
-    if "SYNC_GAMEDATA_SCRIPT" in content:
+    modified = False
+
+    # 1. Update send_embed to use jq for valid JSON encoding with newlines
+    if OLD_SEND_EMBED in content:
+        content = content.replace(OLD_SEND_EMBED, NEW_SEND_EMBED)
+        modified = True
+        print("[+] Fixed send_embed and send_embed_to_second with jq JSON encoding!")
+
+    # 2. Insert GameData sync if not present
+    if "SYNC_GAMEDATA_SCRIPT" not in content:
+        if TARGET not in content:
+            print(f"[-] Target anchor not found in script: {TARGET}", file=sys.stderr)
+            sys.exit(1)
+        content = content.replace(TARGET, INSERTION, 1)
+        modified = True
+        print("[+] Inserted GameData pre-restart sync into script!")
+    else:
         print("[*] GameData sync block already present in script.")
-        return
 
-    if TARGET not in content:
-        print(f"[-] Target anchor not found in script: {TARGET}", file=sys.stderr)
-        sys.exit(1)
-
-    content = content.replace(TARGET, INSERTION, 1)
-    SCRIPT_PATH.write_text(content, encoding="utf-8")
-    print("[+] Successfully inserted GameData pre-restart sync into ptero_tf2_depot_update.sh!")
+    if modified:
+        SCRIPT_PATH.write_text(content, encoding="utf-8")
+        print("[+] Saved changes to /usr/local/bin/ptero_tf2_depot_update.sh!")
+    else:
+        print("[*] Script already up to date.")
 
 
 if __name__ == "__main__":
