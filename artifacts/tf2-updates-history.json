@@ -1,8 +1,70 @@
 {
   "schemaVersion": 2,
-  "latestBuild": "25995664",
-  "updatedAt": "2026-10-17T01:17:39Z",
+  "latestBuild": "26306120",
+  "updatedAt": "2026-10-29T20:39:17Z",
   "updates": [
+    {
+      "buildId": "26306120",
+      "date": "2026-10-29T20:39:17Z",
+      "title": "Обновление TF2 (build 26306120)",
+      "description": "Синхронизация смещений и оффсетов после официального обновления Valve",
+      "stats": {
+        "signaturesCount": 61569,
+        "vtablesCount": 232270,
+        "classesCount": 3391,
+        "serverSignatures": 0,
+        "engineSignatures": 0,
+        "totalChanged": 5
+      },
+      "sampleCount": 5,
+      "sampleChanges": [
+        {
+          "type": "vtable",
+          "name": "CalcIsAttackCriticalHelper",
+          "library": "server",
+          "platform": "windows",
+          "oldValue": "401",
+          "newValue": "407",
+          "details": "Виртуальный слот VTable (windows)"
+        },
+        {
+          "type": "offset",
+          "name": "CTeamplayRoundBasedRules::RoundRespawn",
+          "library": "server",
+          "platform": "windows",
+          "oldValue": "230",
+          "newValue": "231",
+          "details": "Смещение поля структуры (windows)"
+        },
+        {
+          "type": "offset",
+          "name": "CTFPlayer::GiveNamedItem",
+          "library": "server",
+          "platform": "windows",
+          "oldValue": "487",
+          "newValue": "493",
+          "details": "Смещение поля структуры (windows)"
+        },
+        {
+          "type": "offset",
+          "name": "CTFWeaponBase::ApplyPostHitEffects",
+          "library": "server",
+          "platform": "windows",
+          "oldValue": "420",
+          "newValue": "426",
+          "details": "Смещение поля структуры (windows)"
+        },
+        {
+          "type": "offset",
+          "name": "CTFWeaponBase::ApplyOnInjuredAttributes",
+          "library": "server",
+          "platform": "windows",
+          "oldValue": "421",
+          "newValue": "427",
+          "details": "Смещение поля структуры (windows)"
+        }
+      ]
+    },
     {
       "buildId": "25995664",
       "date": "2026-10-17T01:17:39Z",
