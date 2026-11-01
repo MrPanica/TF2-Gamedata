@@ -370,17 +370,45 @@ def sync_all_servers(
     target_uuids: list[str],
     vtables_db: dict,
     signatures_db: dict,
+    mount_path: Path | None = None,
     dry_run: bool = False,
 ) -> tuple[int, list[dict]]:
-    """Scan and patch all GameData files across target server volumes."""
+    """Scan and patch all GameData files across target server volumes and shared mounts."""
     total_files_updated = 0
     all_changes: list[dict] = []
 
-    for uuid in target_uuids:
-        gamedata_dir = volumes_dir / uuid / "tf" / "addons" / "sourcemod" / "gamedata"
-        if not gamedata_dir.exists():
-            continue
+    target_dirs: list[tuple[Path, str]] = []
+    seen_dirs: set[Path] = set()
 
+    for uuid in target_uuids:
+        raw_gd = volumes_dir / uuid / "tf" / "addons" / "sourcemod" / "gamedata"
+        resolved_gd = raw_gd
+        if raw_gd.is_symlink():
+            try:
+                link_target = os.readlink(raw_gd)
+                if link_target.startswith("/home/container/tf/base_tf_files") and mount_path:
+                    resolved_gd = mount_path / "tf" / link_target[len("/home/container/tf/base_tf_files/"):].lstrip("/")
+                elif os.path.exists(link_target):
+                    resolved_gd = Path(link_target)
+            except Exception:
+                pass
+
+        if resolved_gd.exists():
+            resolved_real = resolved_gd.resolve()
+            if resolved_real not in seen_dirs:
+                seen_dirs.add(resolved_real)
+                target_dirs.append((resolved_gd, uuid[:8]))
+
+    # Explicitly include pickup_shared gamedata if mount_path is provided
+    if mount_path and mount_path.exists():
+        pickup_shared_gd = mount_path / "tf" / "pickup_shared" / "addons" / "sourcemod" / "gamedata"
+        if pickup_shared_gd.exists():
+            resolved_real = pickup_shared_gd.resolve()
+            if resolved_real not in seen_dirs:
+                seen_dirs.add(resolved_real)
+                target_dirs.append((pickup_shared_gd, "pickup_shared"))
+
+    for gamedata_dir, label in target_dirs:
         for p in gamedata_dir.rglob("*.txt"):
             if p.name.endswith(".bak") or p.name.startswith("."):
                 continue
@@ -399,7 +427,7 @@ def sync_all_servers(
                 print(f"[-] Could not read {p}: {e}", file=sys.stderr)
                 continue
 
-            rel_path = f"{uuid[:8]}/.../{p.name}"
+            rel_path = f"{label}/.../{p.name}"
             new_content, file_changes = patch_gamedata_content(
                 content, vtables_db, signatures_db, rel_path
             )
@@ -407,7 +435,7 @@ def sync_all_servers(
             if file_changes:
                 total_files_updated += 1
                 all_changes.extend(file_changes)
-                print(f"[!] Found {len(file_changes)} changes in {p.name} ({uuid[:8]}):")
+                print(f"[!] Found {len(file_changes)} changes in {p.name} ({label}):")
                 for c in file_changes:
                     print(f"    - [{c['type'].upper()}] {c['entry']} ({c['prop']}): {c['old']} -> {c['new']}")
 
@@ -520,7 +548,7 @@ def main() -> None:
 
     print(f"[*] Canonical index loaded: {len(vtables_db['vtable_exact'])} exact vtables, {len(vtables_db['vtable_short'])} unambiguous short names, {len(signatures_db)} signatures.")
     total_files, changes = sync_all_servers(
-        args.volumes_dir, target_uuids, vtables_db, signatures_db, dry_run=args.dry_run
+        args.volumes_dir, target_uuids, vtables_db, signatures_db, mount_path=args.mount_path, dry_run=args.dry_run
     )
 
     print(f"[+] Sync finished. Files modified: {total_files}, Total changes: {len(changes)}.")
