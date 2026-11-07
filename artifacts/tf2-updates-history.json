@@ -1,8 +1,34 @@
 {
   "schemaVersion": 2,
-  "latestBuild": "25995664",
-  "updatedAt": "2026-11-07T07:48:19Z",
+  "latestBuild": "26334371",
+  "updatedAt": "2026-11-07T08:06:33Z",
   "updates": [
+    {
+      "buildId": "26334371",
+      "date": "2026-11-07T08:06:33Z",
+      "title": "Обновление TF2 (build 26334371)",
+      "description": "Синхронизация смещений и оффсетов после официального обновления Valve",
+      "stats": {
+        "signaturesCount": 61569,
+        "vtablesCount": 232270,
+        "classesCount": 3391,
+        "serverSignatures": 0,
+        "engineSignatures": 0,
+        "totalChanged": 1
+      },
+      "sampleCount": 1,
+      "sampleChanges": [
+        {
+          "type": "vtable",
+          "name": "CalcIsAttackCriticalHelper",
+          "library": "server",
+          "platform": "windows",
+          "oldValue": "401",
+          "newValue": "407",
+          "details": "Виртуальный слот VTable (windows)"
+        }
+      ]
+    },
     {
       "buildId": "25995664",
       "date": "2026-11-07T07:48:19Z",
@@ -35,32 +61,6 @@
           "oldValue": "450",
           "newValue": "449",
           "details": "Смещение поля структуры (windows)"
-        }
-      ]
-    },
-    {
-      "buildId": "26334371",
-      "date": "2026-10-31T15:20:48Z",
-      "title": "Обновление TF2 (build 26334371)",
-      "description": "Синхронизация смещений и оффсетов после официального обновления Valve",
-      "stats": {
-        "signaturesCount": 61569,
-        "vtablesCount": 232270,
-        "classesCount": 3391,
-        "serverSignatures": 0,
-        "engineSignatures": 0,
-        "totalChanged": 1
-      },
-      "sampleCount": 1,
-      "sampleChanges": [
-        {
-          "type": "vtable",
-          "name": "CalcIsAttackCriticalHelper",
-          "library": "server",
-          "platform": "windows",
-          "oldValue": "401",
-          "newValue": "407",
-          "details": "Виртуальный слот VTable (windows)"
         }
       ]
     },
