@@ -1,8 +1,43 @@
 {
   "schemaVersion": 2,
-  "latestBuild": "26334371",
-  "updatedAt": "2026-10-31T15:20:48Z",
+  "latestBuild": "25995664",
+  "updatedAt": "2026-11-07T07:48:19Z",
   "updates": [
+    {
+      "buildId": "25995664",
+      "date": "2026-11-07T07:48:19Z",
+      "title": "Обновление TF2 (build 25995664)",
+      "description": "Синхронизация смещений и оффсетов после официального обновления Valve",
+      "stats": {
+        "signaturesCount": 61569,
+        "vtablesCount": 232270,
+        "classesCount": 3391,
+        "serverSignatures": 0,
+        "engineSignatures": 0,
+        "totalChanged": 2
+      },
+      "sampleCount": 2,
+      "sampleChanges": [
+        {
+          "type": "vtable",
+          "name": "CalcIsAttackCriticalHelper",
+          "library": "server",
+          "platform": "windows",
+          "oldValue": "401",
+          "newValue": "407",
+          "details": "Виртуальный слот VTable (windows)"
+        },
+        {
+          "type": "offset",
+          "name": "CTFPlayer::ResetScores",
+          "library": "server",
+          "platform": "windows",
+          "oldValue": "450",
+          "newValue": "449",
+          "details": "Смещение поля структуры (windows)"
+        }
+      ]
+    },
     {
       "buildId": "26334371",
       "date": "2026-10-31T15:20:48Z",
@@ -88,32 +123,6 @@
           "oldValue": "421",
           "newValue": "427",
           "details": "Смещение поля структуры (windows)"
-        }
-      ]
-    },
-    {
-      "buildId": "25995664",
-      "date": "2026-10-17T01:17:39Z",
-      "title": "Обновление TF2 (build 25995664)",
-      "description": "Синхронизация смещений и оффсетов после официального обновления Valve",
-      "stats": {
-        "signaturesCount": 61569,
-        "vtablesCount": 232270,
-        "classesCount": 3391,
-        "serverSignatures": 106018,
-        "engineSignatures": 0,
-        "totalChanged": 106019
-      },
-      "sampleCount": 1,
-      "sampleChanges": [
-        {
-          "type": "vtable",
-          "name": "CalcIsAttackCriticalHelper",
-          "library": "server",
-          "platform": "windows",
-          "oldValue": "401",
-          "newValue": "407",
-          "details": "Виртуальный слот VTable (windows)"
         }
       ]
     },
