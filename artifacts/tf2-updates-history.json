@@ -1,12 +1,12 @@
 {
   "schemaVersion": 2,
-  "latestBuild": "26334371",
-  "updatedAt": "2026-11-07T08:06:33Z",
+  "latestBuild": "25995664",
+  "updatedAt": "2026-11-19T11:49:21Z",
   "updates": [
     {
-      "buildId": "26334371",
-      "date": "2026-11-07T08:06:33Z",
-      "title": "Обновление TF2 (build 26334371)",
+      "buildId": "25995664",
+      "date": "2026-11-19T11:49:21Z",
+      "title": "Обновление TF2 (build 25995664)",
       "description": "Синхронизация смещений и оффсетов после официального обновления Valve",
       "stats": {
         "signaturesCount": 61569,
@@ -30,9 +30,9 @@
       ]
     },
     {
-      "buildId": "25995664",
-      "date": "2026-11-07T07:48:19Z",
-      "title": "Обновление TF2 (build 25995664)",
+      "buildId": "26334371",
+      "date": "2026-11-07T08:06:33Z",
+      "title": "Обновление TF2 (build 26334371)",
       "description": "Синхронизация смещений и оффсетов после официального обновления Valve",
       "stats": {
         "signaturesCount": 61569,
@@ -40,9 +40,9 @@
         "classesCount": 3391,
         "serverSignatures": 0,
         "engineSignatures": 0,
-        "totalChanged": 2
+        "totalChanged": 1
       },
-      "sampleCount": 2,
+      "sampleCount": 1,
       "sampleChanges": [
         {
           "type": "vtable",
@@ -52,15 +52,6 @@
           "oldValue": "401",
           "newValue": "407",
           "details": "Виртуальный слот VTable (windows)"
-        },
-        {
-          "type": "offset",
-          "name": "CTFPlayer::ResetScores",
-          "library": "server",
-          "platform": "windows",
-          "oldValue": "450",
-          "newValue": "449",
-          "details": "Смещение поля структуры (windows)"
         }
       ]
     },
