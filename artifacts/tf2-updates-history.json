@@ -1,8 +1,187 @@
 {
   "schemaVersion": 2,
-  "latestBuild": "26334371",
-  "updatedAt": "2026-11-19T12:06:52Z",
+  "latestBuild": "26876646",
+  "updatedAt": "2026-11-23T22:40:04Z",
   "updates": [
+    {
+      "buildId": "26876646",
+      "date": "2026-11-23T22:40:04Z",
+      "title": "Обновление TF2 (build 26876646)",
+      "description": "Синхронизация смещений и оффсетов после официального обновления Valve",
+      "stats": {
+        "signaturesCount": 61569,
+        "vtablesCount": 232270,
+        "classesCount": 3391,
+        "serverSignatures": 105181,
+        "engineSignatures": 15362,
+        "totalChanged": 120561
+      },
+      "sampleCount": 18,
+      "sampleChanges": [
+        {
+          "type": "offset",
+          "name": "CBaseAnimating::GetSequenceGroundSpeed",
+          "library": "server",
+          "platform": "windows",
+          "oldValue": "204",
+          "newValue": "110",
+          "details": "Смещение поля структуры (windows)"
+        },
+        {
+          "type": "offset",
+          "name": "CBaseAnimating::GetSequenceGroundSpeed",
+          "library": "server",
+          "platform": "linux",
+          "oldValue": "205",
+          "newValue": "110",
+          "details": "Смещение поля структуры (linux)"
+        },
+        {
+          "type": "offset",
+          "name": "SetWinningTeam",
+          "library": "server",
+          "platform": "windows",
+          "oldValue": "165",
+          "newValue": "6",
+          "details": "Смещение поля структуры (windows)"
+        },
+        {
+          "type": "offset",
+          "name": "SetWinningTeam",
+          "library": "server",
+          "platform": "linux",
+          "oldValue": "166",
+          "newValue": "6",
+          "details": "Смещение поля структуры (linux)"
+        },
+        {
+          "type": "offset",
+          "name": "CEconEntity::TranslateViewmodelHandActivityInternal",
+          "library": "server",
+          "platform": "linux",
+          "oldValue": "236",
+          "newValue": "172",
+          "details": "Смещение поля структуры (linux)"
+        },
+        {
+          "type": "offset",
+          "name": "CEconEntity::TranslateViewmodelHandActivityInternal",
+          "library": "server",
+          "platform": "windows",
+          "oldValue": "235",
+          "newValue": "172",
+          "details": "Смещение поля структуры (windows)"
+        },
+        {
+          "type": "offset",
+          "name": "IsHolidayActive",
+          "library": "server",
+          "platform": "windows",
+          "oldValue": "139",
+          "newValue": "52",
+          "details": "Смещение поля структуры (windows)"
+        },
+        {
+          "type": "offset",
+          "name": "IsHolidayActive",
+          "library": "server",
+          "platform": "linux",
+          "oldValue": "140",
+          "newValue": "52",
+          "details": "Смещение поля структуры (linux)"
+        },
+        {
+          "type": "offset",
+          "name": "CBaseEntity::Deflected",
+          "library": "server",
+          "platform": "linux",
+          "oldValue": "161",
+          "newValue": "20",
+          "details": "Смещение поля структуры (linux)"
+        },
+        {
+          "type": "offset",
+          "name": "CBaseEntity::Deflected",
+          "library": "server",
+          "platform": "windows",
+          "oldValue": "160",
+          "newValue": "20",
+          "details": "Смещение поля структуры (windows)"
+        },
+        {
+          "type": "offset",
+          "name": "CBaseEntity::VPhysicsUpdate",
+          "library": "server",
+          "platform": "linux",
+          "oldValue": "165",
+          "newValue": "24",
+          "details": "Смещение поля структуры (linux)"
+        },
+        {
+          "type": "offset",
+          "name": "CBaseEntity::VPhysicsUpdate",
+          "library": "server",
+          "platform": "windows",
+          "oldValue": "164",
+          "newValue": "24",
+          "details": "Смещение поля структуры (windows)"
+        },
+        {
+          "type": "offset",
+          "name": "CTFPlayer::GetMaxHealth",
+          "library": "server",
+          "platform": "windows",
+          "oldValue": "123",
+          "newValue": "36",
+          "details": "Смещение поля структуры (windows)"
+        },
+        {
+          "type": "offset",
+          "name": "CTFPlayer::GetMaxHealth",
+          "library": "server",
+          "platform": "linux",
+          "oldValue": "124",
+          "newValue": "36",
+          "details": "Смещение поля структуры (linux)"
+        },
+        {
+          "type": "offset",
+          "name": "CTFProjectile_Jar::GetDamage",
+          "library": "server",
+          "platform": "linux",
+          "oldValue": "136",
+          "newValue": "180",
+          "details": "Смещение поля структуры (linux)"
+        },
+        {
+          "type": "offset",
+          "name": "CTFProjectile_Jar::GetDamage",
+          "library": "server",
+          "platform": "windows",
+          "oldValue": "135",
+          "newValue": "180",
+          "details": "Смещение поля структуры (windows)"
+        },
+        {
+          "type": "offset",
+          "name": "CWeaponMedigun::ItemPostFrame",
+          "library": "server",
+          "platform": "linux",
+          "oldValue": "279",
+          "newValue": "14",
+          "details": "Смещение поля структуры (linux)"
+        },
+        {
+          "type": "offset",
+          "name": "CWeaponMedigun::ItemPostFrame",
+          "library": "server",
+          "platform": "windows",
+          "oldValue": "278",
+          "newValue": "14",
+          "details": "Смещение поля структуры (windows)"
+        }
+      ]
+    },
     {
       "buildId": "26334371",
       "date": "2026-11-19T12:06:52Z",
